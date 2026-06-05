@@ -1,0 +1,14 @@
+{
+  "cleanUrls": false,
+  "rewrites": [
+    { "source": "/category/:slug", "destination": "/category.html" },
+    { "source": "/product/:id", "destination": "/product.html" },
+    { "source": "/blog/:slug", "destination": "/blog-post.html" }
+  ],
+  "headers": [
+    {
+      "source": "/config.json",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+    }
+  ]
+}

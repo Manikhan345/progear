@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product — ProGear</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0a0f'/%3E%3Ctext x='16' y='22' font-family='Arial Black' font-size='14' text-anchor='middle' fill='%2300ff88'%3EPG%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+
+<div id="pg-header"></div>
+
+<div class="product-detail" id="product-detail">
+  <div style="color:var(--text3);padding:80px 0;text-align:center;">Loading...</div>
+</div>
+
+<div id="pg-footer"></div>
+
+<script src="/assets/app.js"></script>
+<script>
+(async () => {
+  await PG.init();
+  const cfg = PG.config;
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  const p = cfg.products.find(x => x.id === id);
+  const container = document.getElementById('product-detail');
+
+  if (!p) {
+    container.innerHTML = `<div style="text-align:center;padding:80px 0;"><div style="font-size:64px;margin-bottom:16px">🎮</div><div style="font-family:var(--font-display);font-size:32px;font-weight:900;text-transform:uppercase;margin-bottom:12px">Product Not Found</div><a href="/" class="btn btn-primary">Back to Home</a></div>`;
+    return;
+  }
+
+  const cat = cfg.categories.find(c => c.id === p.category);
+  document.title = `${p.name} | ProGear`;
+
+  // Meta description
+  const metaDesc = document.createElement('meta');
+  metaDesc.name = 'description';
+  metaDesc.content = p.description;
+  document.head.appendChild(metaDesc);
+
+  // Schema
+  const schema = document.createElement('script');
+  schema.type = 'application/ld+json';
+  schema.textContent = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": p.name,
+    "description": p.description,
+    "image": p.image,
+    "offers": { "@type": "Offer", "priceCurrency": "PKR", "price": p.price, "availability": p.inStock ? "InStock" : "OutOfStock" },
+    "aggregateRating": { "@type": "AggregateRating", "ratingValue": p.rating, "reviewCount": p.reviews }
+  });
+  document.head.appendChild(schema);
+
+  const features = (p.features || []).map(f => `<li>${f}</li>`).join('');
+  const tags = (p.tags || []).map(t => `<span class="product-tag">${t}</span>`).join('');
+  const badge = p.badge ? `<div class="product-badge" style="position:static;display:inline-block;margin-bottom:12px">${p.badge}</div>` : '';
+
+  const sourceMap = { daraz: 'Daraz', telemart: 'Telemart' };
+  const sourceName = sourceMap[p.affiliateSource] || 'Retailer';
+  const btnClass = p.affiliateSource === 'telemart' ? 'btn-buy-telemart' : 'btn-buy-daraz';
+
+  // Related products
+  const related = cfg.products.filter(x => x.id !== p.id && x.category === p.category).slice(0, 3);
+
+  container.innerHTML = `
+    <div class="breadcrumb">
+      <a href="/">Home</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="/category.html?slug=${cat ? cat.slug : p.category}">${cat ? cat.name : p.category}</a>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-current">${p.name}</span>
+    </div>
+
+    <div class="product-detail-grid">
+      <div class="product-detail-img">
+        <img src="${p.image}" alt="${p.name}" id="main-img">
+      </div>
+      <div class="product-detail-info">
+        <div class="product-detail-cat">${cat ? cat.icon + ' ' + cat.name : ''}</div>
+        ${badge}
+        <h1 class="product-detail-name">${p.name}</h1>
+        <div class="product-detail-rating">
+          ${PG.starsHTML(p.rating)}
+          <span style="font-size:14px;color:var(--text2)">${p.rating} / 5</span>
+          <span style="font-size:13px;color:var(--text3)">(${Number(p.reviews).toLocaleString()} reviews)</span>
+        </div>
+        <div class="product-detail-price"><sup>Rs.</sup>${Number(p.price).toLocaleString()}</div>
+        <div class="product-tags" style="margin-bottom:20px">${tags}</div>
+        <p class="product-detail-desc">${p.description}</p>
+        ${features ? `<ul class="product-detail-features">${features}</ul>` : ''}
+        <div class="product-detail-cta">
+          <a href="${p.affiliateUrl}" target="_blank" rel="noopener sponsored" class="btn-buy ${btnClass}">
+            🛒 Buy on ${sourceName}
+          </a>
+          <div class="affiliate-disclaimer">⚡ Clicking takes you to ${sourceName}. We may earn a small commission — no extra cost to you.</div>
+        </div>
+      </div>
+    </div>
+
+    ${related.length ? `
+    <div style="margin-top:64px">
+      <div class="section-header">
+        <div>
+          <div class="section-label">More from ${cat ? cat.name : 'ProGear'}</div>
+          <h2 class="section-title">Related Gear</h2>
+        </div>
+        <a href="/category.html?slug=${cat ? cat.slug : 'all'}" class="section-link">See All →</a>
+      </div>
+      <div class="product-grid">${related.map(r => PG.productCard(r)).join('')}</div>
+    </div>` : ''}
+  `;
+
+  PG.initReveal();
+})();
+</script>
+</body>
+</html>

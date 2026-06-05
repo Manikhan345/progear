@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gaming Blog — ProGear</title>
+  <meta name="description" content="Gaming guides, gear reviews, setup tips and buying advice for Pakistani gamers.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0a0f'/%3E%3Ctext x='16' y='22' font-family='Arial Black' font-size='14' text-anchor='middle' fill='%2300ff88'%3EPG%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+
+<div id="pg-header"></div>
+
+<div class="cat-page-header">
+  <div class="cat-page-header-inner">
+    <div class="breadcrumb">
+      <a href="/">Home</a>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-current">Blog</span>
+    </div>
+    <div class="cat-page-icon">📝</div>
+    <h1 class="cat-page-title">Gaming Blog</h1>
+    <p class="cat-page-desc">Guides, reviews and buying advice from Pakistan's gaming community.</p>
+  </div>
+</div>
+
+<div class="section">
+  <div class="filter-bar" id="filter-bar"></div>
+  <div class="blog-grid" id="blog-grid">
+    <div style="color:var(--text3)">Loading...</div>
+  </div>
+  <div id="no-posts" style="display:none;text-align:center;padding:80px 0;color:var(--text3);">
+    <div style="font-size:48px;margin-bottom:16px">📝</div>
+    <div style="font-family:var(--font-display);font-size:28px;font-weight:900;text-transform:uppercase;margin-bottom:8px">No Posts Yet</div>
+    <div>Blog posts will appear here once published via the admin panel.</div>
+  </div>
+</div>
+
+<div id="pg-footer"></div>
+
+<script src="/assets/app.js"></script>
+<script>
+(async () => {
+  await PG.init();
+  const posts = (PG.config.blog || []).filter(p => p.published);
+  const grid = document.getElementById('blog-grid');
+  const noP = document.getElementById('no-posts');
+
+  const cats = [...new Set(posts.map(p => p.category).filter(Boolean))];
+  const filterBar = document.getElementById('filter-bar');
+  let activeFilter = 'all';
+
+  if (cats.length) {
+    filterBar.innerHTML = `
+      <button class="filter-tag active" onclick="setFilter('all', this)">All</button>
+      ${cats.map(c => `<button class="filter-tag" onclick="setFilter('${c}', this)">${c}</button>`).join('')}`;
+  }
+
+  function renderPosts(filter) {
+    const list = filter === 'all' ? posts : posts.filter(p => p.category === filter);
+    if (!list.length) {
+      grid.innerHTML = '';
+      noP.style.display = 'block';
+    } else {
+      noP.style.display = 'none';
+      grid.innerHTML = list.map(p => `
+        <a href="/blog-post.html?slug=${p.slug}" class="blog-card reveal">
+          <img class="blog-card-img" src="${p.coverImage || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&q=80'}" alt="${p.title}" loading="lazy">
+          <div class="blog-card-body">
+            <div class="blog-card-cat">${p.category || 'Gaming'}</div>
+            <div class="blog-card-title">${p.title}</div>
+            <div class="blog-card-excerpt">${p.excerpt || ''}</div>
+            <div class="blog-card-meta">
+              <span>${p.date || ''}</span>
+              <span>· ${p.readTime || '5 min read'}</span>
+            </div>
+          </div>
+        </a>`).join('');
+      PG.initReveal();
+    }
+  }
+
+  window.setFilter = (f, btn) => {
+    activeFilter = f;
+    document.querySelectorAll('.filter-tag').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderPosts(f);
+  };
+  renderPosts('all');
+})();
+</script>
+</body>
+</html>

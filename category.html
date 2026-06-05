@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Category — ProGear</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0a0f'/%3E%3Ctext x='16' y='22' font-family='Arial Black' font-size='14' text-anchor='middle' fill='%2300ff88'%3EPG%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+
+<div id="pg-header"></div>
+
+<!-- CATEGORY HEADER -->
+<div class="cat-page-header">
+  <div class="cat-page-header-inner">
+    <div class="breadcrumb">
+      <a href="/">Home</a>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-current" id="bc-name">Category</span>
+    </div>
+    <div class="cat-page-icon" id="cat-icon"></div>
+    <h1 class="cat-page-title" id="cat-title">Category</h1>
+    <p class="cat-page-desc" id="cat-desc"></p>
+  </div>
+</div>
+
+<!-- PRODUCTS -->
+<div class="section">
+  <div class="filter-bar" id="filter-bar"></div>
+  <div id="products-count" style="font-size:13px;color:var(--text3);margin-bottom:20px;"></div>
+  <div class="product-grid" id="product-grid">
+    <div style="color:var(--text3);padding:40px 0;">Loading...</div>
+  </div>
+  <div id="no-products" style="display:none;padding:60px 0;text-align:center;color:var(--text3);">
+    <div style="font-size:48px;margin-bottom:16px;">🎮</div>
+    <div style="font-family:var(--font-display);font-size:24px;font-weight:800;text-transform:uppercase;margin-bottom:8px;">No Products Yet</div>
+    <div>Products for this category will be added soon.</div>
+  </div>
+</div>
+
+<div id="pg-footer"></div>
+
+<script src="/assets/app.js"></script>
+<script>
+(async () => {
+  await PG.init();
+  const cfg = PG.config;
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('slug') || 'all';
+
+  const isAll = slug === 'all';
+  const cat = isAll ? null : cfg.categories.find(c => c.slug === slug || c.id === slug);
+
+  // Meta
+  if (cat) {
+    document.title = `${cat.name} | ProGear`;
+    document.getElementById('bc-name').textContent = cat.name;
+    document.getElementById('cat-icon').textContent = cat.icon;
+    document.getElementById('cat-title').textContent = cat.name;
+    document.getElementById('cat-desc').textContent = cat.description;
+  } else {
+    document.title = 'All Products | ProGear';
+    document.getElementById('bc-name').textContent = 'All Products';
+    document.getElementById('cat-icon').textContent = '🎮';
+    document.getElementById('cat-title').textContent = 'All Gear';
+    document.getElementById('cat-desc').textContent = 'Browse every product in the ProGear catalog.';
+  }
+
+  let products = isAll ? cfg.products : cfg.products.filter(p => p.category === (cat ? cat.id : slug));
+  let activeTag = 'all';
+
+  // Tags
+  const allTags = [...new Set(products.flatMap(p => p.tags || []))];
+  const filterBar = document.getElementById('filter-bar');
+  if (allTags.length) {
+    filterBar.innerHTML = `
+      <button class="filter-tag active" onclick="setTag('all', this)">All</button>
+      ${allTags.map(t => `<button class="filter-tag" onclick="setTag('${t}', this)">${t}</button>`).join('')}`;
+  }
+
+  function renderProducts(tag) {
+    const list = tag === 'all' ? products : products.filter(p => (p.tags || []).includes(tag));
+    const grid = document.getElementById('product-grid');
+    const noP = document.getElementById('no-products');
+    const count = document.getElementById('products-count');
+    if (!list.length) {
+      grid.innerHTML = '';
+      noP.style.display = 'block';
+      count.textContent = '';
+    } else {
+      noP.style.display = 'none';
+      count.textContent = `Showing ${list.length} product${list.length !== 1 ? 's' : ''}`;
+      grid.innerHTML = list.map(p => PG.productCard(p)).join('');
+      PG.initReveal();
+    }
+  }
+
+  window.setTag = (tag, btn) => {
+    activeTag = tag;
+    document.querySelectorAll('.filter-tag').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderProducts(tag);
+  };
+  renderProducts('all');
+})();
+</script>
+</body>
+</html>

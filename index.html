@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProGear — Dominate Every Game | Pakistan's Gaming Accessories Store</title>
+  <meta name="description" content="Pakistan's top gaming accessories store. Keyboards, mice, headsets, controllers and more — curated for serious gamers. Shop via Daraz with fast delivery.">
+  <link rel="canonical" href="https://progear.vercel.app/">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0a0f'/%3E%3Ctext x='16' y='22' font-family='Arial Black' font-size='14' text-anchor='middle' fill='%2300ff88'%3EPG%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/assets/style.css">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"ProGear","url":"https://progear.vercel.app/","description":"Pakistan's top gaming accessories store"}</script>
+</head>
+<body>
+
+<div id="pg-header"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-text">
+      <div class="hero-label">Pakistan's #1 Gaming Store</div>
+      <h1 class="hero-title" id="hero-title">Dominate<br><em>Every Game</em></h1>
+      <p class="hero-sub" id="hero-sub">Pakistan's most curated gaming accessories. Top brands, verified reviews — delivered via Daraz.</p>
+      <div class="hero-actions">
+        <a href="#featured" class="btn btn-primary">Shop Now ↓</a>
+        <a href="/blog.html" class="btn btn-outline">Gaming Blog</a>
+      </div>
+      <div class="hero-stats" id="hero-stats">
+        <div>
+          <div class="hero-stat-num">500+</div>
+          <div class="hero-stat-label">Products Listed</div>
+        </div>
+        <div>
+          <div class="hero-stat-num">6</div>
+          <div class="hero-stat-label">Categories</div>
+        </div>
+        <div>
+          <div class="hero-stat-num">PKR</div>
+          <div class="hero-stat-label">Local Pricing</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-img-wrap">
+        <img src="https://images.unsplash.com/photo-1593640408182-31c228d57e5f?w=900&q=80" alt="Gaming Setup">
+        <div class="hero-badge"><span>🎮</span>Level Up</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<div class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-label">Browse by Type</div>
+      <h2 class="section-title">Shop Categories</h2>
+    </div>
+  </div>
+  <div class="cat-grid" id="cat-grid"></div>
+</div>
+
+<!-- FEATURED PRODUCTS -->
+<div class="section-full" id="featured">
+  <div class="section-full-inner">
+    <div class="section-header">
+      <div>
+        <div class="section-label">Hand-Picked</div>
+        <h2 class="section-title">Featured Gear</h2>
+      </div>
+      <a href="/category.html?slug=all" class="section-link">View All →</a>
+    </div>
+    <div class="product-grid" id="featured-grid"></div>
+  </div>
+</div>
+
+<!-- FEATURED BANNER -->
+<div class="section">
+  <div class="featured-banner reveal">
+    <div>
+      <div class="featured-banner-label">🔥 TikTok's Favourite</div>
+      <h2 class="featured-banner-title">Gear Reviewed<br>by Gamers</h2>
+      <p class="featured-banner-text">Every product on ProGear is tested and reviewed by real Pakistani gamers. No fakes, no inflated prices — just the best gear for your budget.</p>
+      <a href="/blog.html" class="btn btn-primary">Read Reviews →</a>
+    </div>
+    <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&q=80" alt="Gaming setup" loading="lazy">
+  </div>
+</div>
+
+<!-- TOP PICKS BY CATEGORY -->
+<div class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-label">Top Picks</div>
+      <h2 class="section-title">Best Sellers</h2>
+    </div>
+  </div>
+  <div class="filter-bar" id="filter-bar"></div>
+  <div class="product-grid" id="top-picks-grid"></div>
+</div>
+
+<!-- BLOG -->
+<div class="section-full" id="blog-section" style="display:none">
+  <div class="section-full-inner">
+    <div class="section-header">
+      <div>
+        <div class="section-label">From The Blog</div>
+        <h2 class="section-title">Gaming Guides</h2>
+      </div>
+      <a href="/blog.html" class="section-link">All Posts →</a>
+    </div>
+    <div class="blog-grid" id="blog-preview"></div>
+  </div>
+</div>
+
+<div id="pg-footer"></div>
+
+<script src="/assets/app.js"></script>
+<script>
+(async () => {
+  await PG.init();
+  const cfg = PG.config;
+  const cats = cfg.categories;
+  const products = cfg.products;
+
+  // Category grid
+  const catGrid = document.getElementById('cat-grid');
+  const catCounts = {};
+  products.forEach(p => { catCounts[p.category] = (catCounts[p.category] || 0) + 1; });
+  catGrid.innerHTML = cats.map(c => `
+    <a href="/category.html?slug=${c.slug}" class="cat-card reveal">
+      <img class="cat-card-img" src="${c.image}" alt="${c.name}" loading="lazy">
+      <div class="cat-card-overlay"></div>
+      <div class="cat-card-body">
+        <span class="cat-card-icon">${c.icon}</span>
+        <div class="cat-card-name">${c.name}</div>
+        <div class="cat-card-count">${catCounts[c.id] || 0} products</div>
+      </div>
+      <div class="cat-card-glow"></div>
+    </a>`).join('');
+
+  // Featured products
+  const featured = products.filter(p => p.featured).slice(0, 3);
+  document.getElementById('featured-grid').innerHTML = featured.map(p => PG.productCard(p)).join('');
+
+  // Filter bar + top picks
+  const filterBar = document.getElementById('filter-bar');
+  const tpGrid = document.getElementById('top-picks-grid');
+  let activeFilter = 'all';
+
+  filterBar.innerHTML = `
+    <button class="filter-tag active" onclick="setFilter('all', this)">All</button>
+    ${cats.map(c => `<button class="filter-tag" onclick="setFilter('${c.id}', this)">${c.icon} ${c.name}</button>`).join('')}`;
+
+  function renderTopPicks(filter) {
+    const list = filter === 'all' ? products : products.filter(p => p.category === filter);
+    tpGrid.innerHTML = list.slice(0, 6).map(p => PG.productCard(p)).join('');
+    PG.initReveal();
+  }
+  window.setFilter = (f, btn) => {
+    activeFilter = f;
+    document.querySelectorAll('.filter-tag').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTopPicks(f);
+  };
+  renderTopPicks('all');
+
+  // Blog preview
+  const posts = (cfg.blog || []).filter(p => p.published).slice(0, 3);
+  if (posts.length) {
+    document.getElementById('blog-section').style.display = '';
+    document.getElementById('blog-preview').innerHTML = posts.map(p => `
+      <a href="/blog-post.html?slug=${p.slug}" class="blog-card">
+        <img class="blog-card-img" src="${p.coverImage}" alt="${p.title}" loading="lazy">
+        <div class="blog-card-body">
+          <div class="blog-card-cat">${p.category || 'Gaming'}</div>
+          <div class="blog-card-title">${p.title}</div>
+          <div class="blog-card-excerpt">${p.excerpt || ''}</div>
+          <div class="blog-card-meta">
+            <span>${p.date || ''}</span>
+            <span>· ${p.readTime || '5 min read'}</span>
+          </div>
+        </div>
+      </a>`).join('');
+  }
+
+  PG.initReveal();
+})();
+</script>
+</body>
+</html>

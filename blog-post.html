@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog Post — ProGear</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0a0f'/%3E%3Ctext x='16' y='22' font-family='Arial Black' font-size='14' text-anchor='middle' fill='%2300ff88'%3EPG%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/assets/style.css">
+  <style>
+    .post-wrap { max-width: 760px; margin: 0 auto; padding: 48px 24px; }
+    .post-cover { width: 100%; height: 420px; object-fit: cover; border-radius: var(--radius-lg); margin-bottom: 40px; }
+    .post-meta { display: flex; gap: 16px; align-items: center; font-size: 13px; color: var(--text3); margin-bottom: 16px; flex-wrap: wrap; }
+    .post-cat { background: var(--neon-dim); border: 1px solid rgba(0,255,136,0.3); color: var(--neon); padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+    .post-title { font-family: var(--font-display); font-size: clamp(32px, 5vw, 56px); font-weight: 900; text-transform: uppercase; line-height: 1.05; margin-bottom: 24px; }
+    .post-body { color: var(--text2); line-height: 1.8; font-size: 16px; }
+    .post-body h2 { font-family: var(--font-display); font-size: 28px; font-weight: 800; text-transform: uppercase; color: var(--text); margin: 40px 0 16px; }
+    .post-body h3 { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--text); margin: 28px 0 12px; }
+    .post-body p { margin-bottom: 20px; }
+    .post-body ul, .post-body ol { margin-bottom: 20px; padding-left: 24px; }
+    .post-body li { margin-bottom: 8px; }
+    .post-body strong { color: var(--text); }
+    .post-body a { color: var(--neon); }
+    .post-body a:hover { text-decoration: underline; }
+    .post-body img { width: 100%; border-radius: var(--radius); margin: 24px 0; }
+    .post-body blockquote { border-left: 3px solid var(--neon); padding: 12px 20px; margin: 24px 0; background: var(--neon-dim); border-radius: 0 var(--radius) var(--radius) 0; color: var(--text); font-style: italic; }
+  </style>
+</head>
+<body>
+
+<div id="pg-header"></div>
+
+<div class="post-wrap" id="post-wrap">
+  <div style="color:var(--text3);padding:80px 0;text-align:center">Loading...</div>
+</div>
+
+<div id="pg-footer"></div>
+
+<script src="/assets/app.js"></script>
+<script>
+(async () => {
+  await PG.init();
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('slug');
+  const post = (PG.config.blog || []).find(p => p.slug === slug);
+  const wrap = document.getElementById('post-wrap');
+
+  if (!post) {
+    wrap.innerHTML = `<div style="text-align:center;padding:80px 0"><div style="font-size:48px;margin-bottom:16px">📝</div><div style="font-family:var(--font-display);font-size:28px;font-weight:900;text-transform:uppercase;margin-bottom:12px">Post Not Found</div><a href="/blog.html" class="btn btn-outline">Back to Blog</a></div>`;
+    return;
+  }
+
+  document.title = `${post.title} | ProGear Blog`;
+  const metaDesc = document.createElement('meta');
+  metaDesc.name = 'description';
+  metaDesc.content = post.excerpt || post.title;
+  document.head.appendChild(metaDesc);
+
+  wrap.innerHTML = `
+    <div class="breadcrumb">
+      <a href="/">Home</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="/blog.html">Blog</a>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-current">${post.title}</span>
+    </div>
+    ${post.coverImage ? `<img class="post-cover" src="${post.coverImage}" alt="${post.title}">` : ''}
+    <div class="post-meta">
+      ${post.category ? `<span class="post-cat">${post.category}</span>` : ''}
+      ${post.date ? `<span>📅 ${post.date}</span>` : ''}
+      ${post.readTime ? `<span>⏱ ${post.readTime}</span>` : ''}
+    </div>
+    <h1 class="post-title">${post.title}</h1>
+    <div class="post-body">${post.content || ''}</div>
+  `;
+})();
+</script>
+</body>
+</html>
