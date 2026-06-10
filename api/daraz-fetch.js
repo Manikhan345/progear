@@ -96,6 +96,42 @@ async function fetchFollowingAllRedirects(startUrl, maxHops) {
         } catch (e) { break; }
       }
     }
+
+    // Smart fallback: page reached but no product data — scan for a product URL
+    // This handles Daraz short links that redirect to a campaign/landing page
+    // but contain a link to the actual product somewhere on the page
+    const isProductPage = html.includes('"@type":"Product"') ||
+                          html.includes('window.runParams') ||
+                          html.includes('pdp-mod-product-badge') ||
+                          /class="[^"]*pdp-product[^"]*"/.test(html) ||
+                          html.includes('"skuBase"');
+
+    if (!isProductPage) {
+      // Try canonical link
+      const canonical = html.match(/<link\s+rel=["']canonical["']\s+href=["']([^"']+)["']/i);
+      // Try og:url
+      const ogUrl = html.match(/<meta\s+(?:property|name)=["']og:url["']\s+content=["']([^"']+)["']/i);
+      // Try any /products/ URL on page
+      const productUrlMatch = html.match(/https?:\/\/(?:www\.)?daraz\.pk\/products\/[^"'\s<>]+\.html/i);
+      // Try app deeplink pattern: daraz://product/...
+      const appDeeplink = html.match(/daraz:\/\/[^"'\s<>]*productId[=/]([^&"'\s<>]+)/i);
+
+      let nextUrl = null;
+      if (canonical && canonical[1].includes('/products/')) nextUrl = canonical[1];
+      else if (ogUrl && ogUrl[1].includes('/products/')) nextUrl = ogUrl[1];
+      else if (productUrlMatch) nextUrl = productUrlMatch[0];
+      else if (appDeeplink) {
+        // Convert daraz://product/123 to web URL
+        nextUrl = `https://www.daraz.pk/products/i${appDeeplink[1]}.html`;
+      }
+
+      if (nextUrl && nextUrl !== finalUrl && nextUrl !== url) {
+        try {
+          url = new URL(nextUrl, finalUrl).toString();
+          continue;
+        } catch (e) {}
+      }
+    }
     break;
   }
 
