@@ -230,34 +230,6 @@
       "inStock": true
     },
     {
-      "id": "p005",
-      "name": "Redragon H510 Zeus Headset",
-      "category": "headsets",
-      "tags": [
-        "7.1 Surround",
-        "PC",
-        "RGB"
-      ],
-      "price": 5800,
-      "image": "https://images.unsplash.com/photo-1548618526-8c4cf2d2d8cb?w=600&q=80",
-      "images": [],
-      "rating": 4.3,
-      "reviews": 890,
-      "badge": "",
-      "description": "7.1 virtual surround sound headset with RGB earcups. Great value for immersive PC gaming.",
-      "features": [
-        "7.1 virtual surround",
-        "50mm neodymium drivers",
-        "RGB earcups",
-        "Retractable microphone",
-        "USB connection"
-      ],
-      "affiliateUrl": "https://www.daraz.pk/products/",
-      "affiliateSource": "daraz",
-      "featured": false,
-      "inStock": true
-    },
-    {
       "id": "p006",
       "name": "Havit HV-KB395L RGB Keyboard",
       "category": "keyboards",
