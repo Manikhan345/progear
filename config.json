@@ -30,7 +30,14 @@
       "icon": "⌨️",
       "description": "Mechanical and membrane gaming keyboards for every playstyle",
       "image": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&q=80",
-      "tags": ["Mechanical", "Membrane", "TKL", "Full Size", "Wireless", "RGB"]
+      "tags": [
+        "Mechanical",
+        "Membrane",
+        "TKL",
+        "Full Size",
+        "Wireless",
+        "RGB"
+      ]
     },
     {
       "id": "mice",
@@ -39,7 +46,13 @@
       "icon": "🖱️",
       "description": "High-DPI precision mice built for FPS, MOBA and MMO gamers",
       "image": "https://images.unsplash.com/photo-1527814050087-3793815479db?w=800&q=80",
-      "tags": ["Wired", "Wireless", "Lightweight", "Ergonomic", "RGB"]
+      "tags": [
+        "Wired",
+        "Wireless",
+        "Lightweight",
+        "Ergonomic",
+        "RGB"
+      ]
     },
     {
       "id": "headsets",
@@ -48,7 +61,14 @@
       "icon": "🎧",
       "description": "Surround sound gaming headsets for immersive audio",
       "image": "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&q=80",
-      "tags": ["Stereo", "7.1 Surround", "Wireless", "Noise Cancelling", "PC", "Console"]
+      "tags": [
+        "Stereo",
+        "7.1 Surround",
+        "Wireless",
+        "Noise Cancelling",
+        "PC",
+        "Console"
+      ]
     },
     {
       "id": "controllers",
@@ -57,7 +77,13 @@
       "icon": "🕹️",
       "description": "Console and PC controllers for every platform",
       "image": "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=800&q=80",
-      "tags": ["PlayStation", "Xbox", "PC", "Mobile", "Wireless"]
+      "tags": [
+        "PlayStation",
+        "Xbox",
+        "PC",
+        "Mobile",
+        "Wireless"
+      ]
     },
     {
       "id": "chairs",
@@ -66,7 +92,13 @@
       "icon": "💺",
       "description": "Ergonomic gaming chairs for long sessions",
       "image": "https://images.unsplash.com/photo-1598550476439-6847785fcea6?w=800&q=80",
-      "tags": ["Racing Style", "Ergonomic", "With Footrest", "Budget", "Premium"]
+      "tags": [
+        "Racing Style",
+        "Ergonomic",
+        "With Footrest",
+        "Budget",
+        "Premium"
+      ]
     },
     {
       "id": "monitors",
@@ -75,7 +107,14 @@
       "icon": "🖥️",
       "description": "High refresh rate monitors for the competitive edge",
       "image": "https://images.unsplash.com/photo-1585792180666-f7347c490ee2?w=800&q=80",
-      "tags": ["144Hz", "240Hz", "1080p", "1440p", "Curved", "IPS"]
+      "tags": [
+        "144Hz",
+        "240Hz",
+        "1080p",
+        "1440p",
+        "Curved",
+        "IPS"
+      ]
     }
   ],
   "products": [
@@ -83,7 +122,11 @@
       "id": "p001",
       "name": "Redragon K552 Mechanical Keyboard",
       "category": "keyboards",
-      "tags": ["Mechanical", "TKL", "RGB"],
+      "tags": [
+        "Mechanical",
+        "TKL",
+        "RGB"
+      ],
       "price": 4500,
       "image": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&q=80",
       "images": [],
@@ -91,7 +134,13 @@
       "reviews": 1240,
       "badge": "Best Seller",
       "description": "Compact TKL mechanical keyboard with red switches and RGB backlight. Built for competitive gaming.",
-      "features": ["Blue mechanical switches", "RGB per-key backlight", "TKL compact layout", "Anti-ghosting", "Metal top frame"],
+      "features": [
+        "Blue mechanical switches",
+        "RGB per-key backlight",
+        "TKL compact layout",
+        "Anti-ghosting",
+        "Metal top frame"
+      ],
       "affiliateUrl": "https://www.daraz.pk/products/",
       "affiliateSource": "daraz",
       "featured": true,
@@ -101,7 +150,11 @@
       "id": "p002",
       "name": "Logitech G102 Gaming Mouse",
       "category": "mice",
-      "tags": ["Wired", "RGB", "Lightweight"],
+      "tags": [
+        "Wired",
+        "RGB",
+        "Lightweight"
+      ],
       "price": 3200,
       "image": "https://images.unsplash.com/photo-1527814050087-3793815479db?w=600&q=80",
       "images": [],
@@ -109,7 +162,13 @@
       "reviews": 3800,
       "badge": "Top Rated",
       "description": "6-button programmable gaming mouse with 8000 DPI optical sensor. A staple for Pakistani gamers.",
-      "features": ["8000 DPI sensor", "6 programmable buttons", "RGB lighting", "1.8m braided cable", "16.8M color"],
+      "features": [
+        "8000 DPI sensor",
+        "6 programmable buttons",
+        "RGB lighting",
+        "1.8m braided cable",
+        "16.8M color"
+      ],
       "affiliateUrl": "https://www.daraz.pk/products/",
       "affiliateSource": "daraz",
       "featured": true,
@@ -119,7 +178,11 @@
       "id": "p003",
       "name": "HyperX Cloud Stinger Gaming Headset",
       "category": "headsets",
-      "tags": ["Stereo", "PC", "Console"],
+      "tags": [
+        "Stereo",
+        "PC",
+        "Console"
+      ],
       "price": 8500,
       "image": "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=600&q=80",
       "images": [],
@@ -127,7 +190,13 @@
       "reviews": 2100,
       "badge": "Popular",
       "description": "Lightweight gaming headset with swivel-to-mute mic and 50mm directional drivers.",
-      "features": ["50mm directional drivers", "Swivel-to-mute microphone", "Adjustable steel slider", "Works on PC, PS4, Xbox, Mobile", "Volume control on ear cup"],
+      "features": [
+        "50mm directional drivers",
+        "Swivel-to-mute microphone",
+        "Adjustable steel slider",
+        "Works on PC, PS4, Xbox, Mobile",
+        "Volume control on ear cup"
+      ],
       "affiliateUrl": "https://www.daraz.pk/products/",
       "affiliateSource": "daraz",
       "featured": true,
@@ -137,7 +206,10 @@
       "id": "p004",
       "name": "Sony DualShock 4 Controller",
       "category": "controllers",
-      "tags": ["PlayStation", "Wireless"],
+      "tags": [
+        "PlayStation",
+        "Wireless"
+      ],
       "price": 12000,
       "image": "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=600&q=80",
       "images": [],
@@ -145,7 +217,13 @@
       "reviews": 5600,
       "badge": "Official",
       "description": "Official Sony PS4 controller. Works on PS4 and PC. The gold standard in console gaming.",
-      "features": ["DualShock vibration feedback", "Touchpad & light bar", "3.5mm audio jack", "Built-in speaker", "USB & Bluetooth"],
+      "features": [
+        "DualShock vibration feedback",
+        "Touchpad & light bar",
+        "3.5mm audio jack",
+        "Built-in speaker",
+        "USB & Bluetooth"
+      ],
       "affiliateUrl": "https://www.daraz.pk/products/",
       "affiliateSource": "daraz",
       "featured": false,
@@ -155,7 +233,11 @@
       "id": "p005",
       "name": "Redragon H510 Zeus Headset",
       "category": "headsets",
-      "tags": ["7.1 Surround", "PC", "RGB"],
+      "tags": [
+        "7.1 Surround",
+        "PC",
+        "RGB"
+      ],
       "price": 5800,
       "image": "https://images.unsplash.com/photo-1548618526-8c4cf2d2d8cb?w=600&q=80",
       "images": [],
@@ -163,7 +245,13 @@
       "reviews": 890,
       "badge": "",
       "description": "7.1 virtual surround sound headset with RGB earcups. Great value for immersive PC gaming.",
-      "features": ["7.1 virtual surround", "50mm neodymium drivers", "RGB earcups", "Retractable microphone", "USB connection"],
+      "features": [
+        "7.1 virtual surround",
+        "50mm neodymium drivers",
+        "RGB earcups",
+        "Retractable microphone",
+        "USB connection"
+      ],
       "affiliateUrl": "https://www.daraz.pk/products/",
       "affiliateSource": "daraz",
       "featured": false,
@@ -173,7 +261,11 @@
       "id": "p006",
       "name": "Havit HV-KB395L RGB Keyboard",
       "category": "keyboards",
-      "tags": ["Membrane", "Full Size", "RGB"],
+      "tags": [
+        "Membrane",
+        "Full Size",
+        "RGB"
+      ],
       "price": 2800,
       "image": "https://images.unsplash.com/photo-1595044778984-c27087b0eb8d?w=600&q=80",
       "images": [],
@@ -181,11 +273,35 @@
       "reviews": 670,
       "badge": "Budget Pick",
       "description": "Full-size RGB gaming keyboard with quiet membrane switches. Perfect entry-level pick.",
-      "features": ["Rainbow RGB backlight", "19-key anti-ghosting", "Water resistant", "Ergonomic wrist rest", "Multimedia keys"],
+      "features": [
+        "Rainbow RGB backlight",
+        "19-key anti-ghosting",
+        "Water resistant",
+        "Ergonomic wrist rest",
+        "Multimedia keys"
+      ],
       "affiliateUrl": "https://www.daraz.pk/products/",
       "affiliateSource": "daraz",
       "featured": false,
       "inStock": true
+    },
+    {
+      "id": "p1781094888951_0",
+      "name": "EGM  Wireless Controller Compatible for P4 - New, Bluetooth, 6-Month Warranty, Compatible with PC/Laptop/Mobile",
+      "category": "keyboards",
+      "price": 0,
+      "image": "https://lzd-img-push.slatic.net/lazada-creative-center/117af5cc-88ca-4da8-a479-5aee184c772a.jpg?x-oss-process=image/quality,q_80/format,avif",
+      "description": "EGM  Wireless Controller Compatible for P4 - New, Bluetooth, 6-Month Warranty, Compatible with PC/Laptop/Mobile",
+      "rating": 4,
+      "reviews": 0,
+      "affiliateUrl": "https://s.daraz.pk/s.coz4v?cc",
+      "affiliateSource": "daraz",
+      "tags": [],
+      "features": [],
+      "badge": "",
+      "featured": false,
+      "inStock": true,
+      "images": []
     }
   ],
   "blog": [],
