@@ -12,7 +12,7 @@
 // 3. Return a specific error if parsing fails (never "Unknown error").
 // ════════════════════════════════════════════════════════════
 
-const UA = 'Mozilla/5.0 (Linux; Android 13; SM-S908B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Mobile Safari/537.36';
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
 
 const COMMON_HEADERS = {
   'User-Agent': UA,
@@ -153,15 +153,92 @@ function parseProductData(html, originalUrl, finalUrl) {
   const data = {
     name: '',
     price: 0,
+    originalPrice: 0,
+    discount: 0,
     image: '',
     description: '',
     rating: 0,
     reviews: 0,
+    sold: 0,
     affiliateUrl: originalUrl,
     sourceUrl: finalUrl,
   };
 
-  // 1. JSON-LD
+  // ── Strategy A: window.runParams — Daraz's main data store ──
+  let runParams = null;
+  try {
+    const m = html.match(/window\.runParams\s*=\s*(\{[\s\S]*?\});\s*(?:window|<\/script)/);
+    if (m) runParams = JSON.parse(m[1]);
+  } catch (e) {}
+
+  if (runParams) {
+    try {
+      const root = runParams.data || runParams;
+      const fields = (root.root && root.root.fields) || root.fields || root;
+
+      // Product name
+      if (fields.product) {
+        if (fields.product.title) data.name = stripTags(fields.product.title);
+        if (fields.product.desc) data.description = stripTags(fields.product.desc);
+      }
+
+      // SKU info — the price source of truth on Daraz
+      const skuBase = fields.skuBase || {};
+      const skus = skuBase.skus || [];
+      const skuInfos = fields.skuInfos || {};
+      const firstSkuId = skus[0] && skus[0].skuId;
+      const skuInfo = firstSkuId ? skuInfos[firstSkuId] : null;
+
+      if (skuInfo) {
+        // Price extraction
+        const price = skuInfo.price || {};
+        const sale = price.salePrice;
+        const orig = price.originalPrice;
+        if (sale) {
+          const val = typeof sale.value === 'number' ? sale.value : parseFloat(String(sale.value || '').replace(/[^\d.]/g, ''));
+          if (val) data.price = val;
+        }
+        if (orig) {
+          const val = typeof orig.value === 'number' ? orig.value : parseFloat(String(orig.value || '').replace(/[^\d.]/g, ''));
+          if (val) data.originalPrice = val;
+        }
+        if (price.discount) data.discount = parseInt(String(price.discount).replace(/[^\d]/g, '')) || 0;
+      }
+
+      // Galleries (images)
+      if (firstSkuId && fields.skuGalleries && fields.skuGalleries[firstSkuId]) {
+        const gallery = fields.skuGalleries[firstSkuId];
+        if (gallery[0] && gallery[0].src) data.image = gallery[0].src;
+      }
+      // Fallback: top-level gallery
+      if (!data.image && fields.gallery && fields.gallery[0] && fields.gallery[0].src) {
+        data.image = fields.gallery[0].src;
+      }
+
+      // Rating / reviews
+      const rating = fields.review || fields.ratings || {};
+      if (rating.ratings) {
+        const r = rating.ratings;
+        if (r.average && !data.rating) data.rating = parseFloat(r.average);
+        if (!data.reviews) data.reviews = parseInt(r.totalRatings || r.reviewCount || r.total || 0);
+      }
+      // Alt: review object
+      if (!data.rating && rating.averageStar) data.rating = parseFloat(rating.averageStar);
+      if (!data.reviews && rating.ratingTotal) data.reviews = parseInt(rating.ratingTotal);
+      if (!data.reviews && rating.reviewTotal) data.reviews = parseInt(rating.reviewTotal);
+
+      // Sold count
+      if (fields.product && fields.product.itemSoldCntShow) {
+        const sm = String(fields.product.itemSoldCntShow).match(/(\d+)/);
+        if (sm) data.sold = parseInt(sm[1]);
+      }
+      if (!data.sold && fields.product && fields.product.itemsSold) {
+        data.sold = parseInt(fields.product.itemsSold) || 0;
+      }
+    } catch (e) {}
+  }
+
+  // ── Strategy B: JSON-LD ──
   try {
     const jsonLdMatches = [...html.matchAll(/<script\s+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
     for (const m of jsonLdMatches) {
@@ -178,7 +255,10 @@ function parseProductData(html, originalUrl, finalUrl) {
             if (prod.description && !data.description) data.description = stripTags(prod.description);
             if (prod.offers) {
               const offer = Array.isArray(prod.offers) ? prod.offers[0] : prod.offers;
-              if (offer.price && !data.price) data.price = parseFloat(String(offer.price).replace(/,/g, ''));
+              if (offer.price && !data.price) {
+                const p = parseFloat(String(offer.price).replace(/[^\d.]/g, ''));
+                if (p) data.price = p;
+              }
             }
             if (prod.aggregateRating) {
               const r = prod.aggregateRating;
@@ -191,79 +271,78 @@ function parseProductData(html, originalUrl, finalUrl) {
     }
   } catch (e) {}
 
-  // 2. window.runParams
-  try {
-    const runParamsMatch = html.match(/window\.runParams\s*=\s*(\{[\s\S]*?\});\s*<\/script>/);
-    if (runParamsMatch) {
-      const runParams = JSON.parse(runParamsMatch[1]);
-      const d = runParams.data || runParams;
-      const fields = (d.root && d.root.fields) || d.fields || {};
-      const skuBase = fields.skuBase || {};
-      const skuInfos = fields.skuInfos || {};
-      const firstSku = skuBase.skus && skuBase.skus[0] && skuBase.skus[0].skuId;
-      const skuInfo = firstSku ? skuInfos[firstSku] : null;
+  // ── Strategy C: Open Graph meta tags ──
+  if (!data.name) {
+    const m = html.match(/<meta\s+(?:property|name)=["']og:title["']\s+content=["']([^"']+)["']/i);
+    if (m) data.name = decodeHTMLEntities(m[1]).replace(/\s*[|–-]\s*Daraz.*$/i, '').trim();
+  }
+  if (!data.image) {
+    const m = html.match(/<meta\s+(?:property|name)=["']og:image["']\s+content=["']([^"']+)["']/i);
+    if (m) data.image = m[1];
+  }
+  if (!data.description) {
+    const m = html.match(/<meta\s+(?:property|name)=["']og:description["']\s+content=["']([^"']+)["']/i);
+    if (m) data.description = decodeHTMLEntities(m[1]);
+  }
+  if (!data.price) {
+    const m = html.match(/<meta\s+(?:property|name)=["']product:price:amount["']\s+content=["']([^"']+)["']/i);
+    if (m) {
+      const p = parseFloat(m[1].replace(/,/g, ''));
+      if (p) data.price = p;
+    }
+  }
 
-      if (!data.name && fields.product && fields.product.title) data.name = stripTags(fields.product.title);
-      if (!data.image && firstSku && fields.skuGalleries && fields.skuGalleries[firstSku] && fields.skuGalleries[firstSku][0]) {
-        data.image = fields.skuGalleries[firstSku][0].src;
-      }
-      if (!data.price && skuInfo && skuInfo.price && skuInfo.price.salePrice && skuInfo.price.salePrice.value) {
-        data.price = parseFloat(String(skuInfo.price.salePrice.value).replace(/[^\d.]/g, ''));
-      }
-      if (skuInfo && skuInfo.ratings) {
-        if (!data.rating) data.rating = parseFloat(skuInfo.ratings.average || 0);
-        if (!data.reviews) data.reviews = parseInt(skuInfo.ratings.totalRatings || skuInfo.ratings.reviewCount || 0);
-      }
-    }
-  } catch (e) {}
-
-  // 3. __NEXT_DATA__
-  try {
-    const nextMatch = html.match(/<script\s+id=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)<\/script>/);
-    if (nextMatch) {
-      const nextData = JSON.parse(nextMatch[1]);
-      const props = (nextData.props && nextData.props.pageProps) || {};
-      const product = props.product || (props.data && props.data.product) || {};
-      if (!data.name && product.name) data.name = stripTags(product.name);
-      if (!data.image && product.image) data.image = product.image;
-      if (!data.price && product.price) data.price = parseFloat(String(product.price).replace(/[^\d.]/g, ''));
-    }
-  } catch (e) {}
-
-  // 4. OG meta
-  try {
-    if (!data.name) {
-      const m = html.match(/<meta\s+(?:property|name)=["']og:title["']\s+content=["']([^"']+)["']/i);
-      if (m) data.name = decodeHTMLEntities(m[1]).replace(/\s*[|–-]\s*Daraz.*$/i, '').trim();
-    }
-    if (!data.image) {
-      const m = html.match(/<meta\s+(?:property|name)=["']og:image["']\s+content=["']([^"']+)["']/i);
-      if (m) data.image = m[1];
-    }
-    if (!data.description) {
-      const m = html.match(/<meta\s+(?:property|name)=["']og:description["']\s+content=["']([^"']+)["']/i);
-      if (m) data.description = decodeHTMLEntities(m[1]);
-    }
-    if (!data.price) {
-      const m = html.match(/<meta\s+(?:property|name)=["']product:price:amount["']\s+content=["']([^"']+)["']/i);
-      if (m) data.price = parseFloat(m[1].replace(/,/g, ''));
-    }
-  } catch (e) {}
-
-  // 5. Title fallback
+  // ── Strategy D: Title tag ──
   if (!data.name) {
     const m = html.match(/<title>([^<]+)<\/title>/i);
     if (m) data.name = decodeHTMLEntities(m[1]).replace(/\s*[|–-]\s*Daraz.*$/i, '').replace(/\s*-\s*Buy.*$/i, '').trim();
   }
 
-  // 6. Daraz HTML class patterns for price
+  // ── Strategy E: Targeted JSON key search (price, rating, etc.) ──
+  if (!data.price) {
+    // Search for salePrice or price in any JSON-like structure
+    const patterns = [
+      /"salePrice"\s*:\s*\{\s*"value"\s*:\s*"?([\d.]+)"?/i,
+      /"salePrice"\s*:\s*"?([\d.]+)"?/i,
+      /"priceShow"\s*:\s*"Rs\.\s*([\d,]+(?:\.\d+)?)"/i,
+      /"price"\s*:\s*\{\s*"value"\s*:\s*"?([\d.]+)"?/i,
+    ];
+    for (const re of patterns) {
+      const m = html.match(re);
+      if (m) { const p = parseFloat(m[1].replace(/,/g, '')); if (p) { data.price = p; break; } }
+    }
+  }
+  if (!data.originalPrice) {
+    const m = html.match(/"originalPrice"\s*:\s*\{\s*"value"\s*:\s*"?([\d.]+)"?/i) ||
+              html.match(/"originalPriceShow"\s*:\s*"Rs\.\s*([\d,]+(?:\.\d+)?)"/i);
+    if (m) data.originalPrice = parseFloat(m[1].replace(/,/g, ''));
+  }
+  if (!data.rating) {
+    const m = html.match(/"averageRating"\s*:\s*"?([\d.]+)"?/i) ||
+              html.match(/"ratingValue"\s*:\s*"?([\d.]+)"?/i) ||
+              html.match(/"average"\s*:\s*"?([\d.]+)"?\s*,\s*"totalRatings"/i);
+    if (m) data.rating = parseFloat(m[1]);
+  }
+  if (!data.reviews) {
+    const m = html.match(/"totalRatings"\s*:\s*"?(\d+)"?/i) ||
+              html.match(/"reviewCount"\s*:\s*"?(\d+)"?/i) ||
+              html.match(/"ratingTotal"\s*:\s*"?(\d+)"?/i);
+    if (m) data.reviews = parseInt(m[1]);
+  }
+  if (!data.sold) {
+    const m = html.match(/"itemSoldCntShow"\s*:\s*"([^"]+)"/i) ||
+              html.match(/"itemsSold"\s*:\s*"?(\d+)/i);
+    if (m) {
+      const sm = m[1].match(/(\d+)/);
+      if (sm) data.sold = parseInt(sm[1]);
+    }
+  }
+
+  // ── Strategy F: HTML class patterns (last resort, often unreliable) ──
   if (!data.price) {
     const pricePatterns = [
-      /class="[^"]*pdp-price[^"]*"[^>]*>\s*Rs\.?\s*([\d,]+(?:\.\d{1,2})?)/i,
-      /class="[^"]*price-content[^"]*"[^>]*>\s*Rs\.?\s*([\d,]+(?:\.\d{1,2})?)/i,
-      /class="[^"]*pdp-product-price[^"]*"[^>]*>\s*Rs\.?\s*([\d,]+(?:\.\d{1,2})?)/i,
-      /"salePrice"\s*:\s*\{[^}]*"value"\s*:\s*"?([\d.]+)"?/i,
-      /"priceShow"\s*:\s*"Rs\.\s*([\d,]+)"/i,
+      /class="pdp-price[^"]*"[^>]*>\s*Rs\.?\s*([\d,]+(?:\.\d{1,2})?)/i,
+      /class="pdp-product-price[^"]*"[^>]*>\s*Rs\.?\s*([\d,]+(?:\.\d{1,2})?)/i,
     ];
     for (const re of pricePatterns) {
       const m = html.match(re);
@@ -271,44 +350,20 @@ function parseProductData(html, originalUrl, finalUrl) {
     }
   }
 
-  // 7. Raw price scan
-  if (!data.price) {
-    const priceMatches = [...html.matchAll(/(?:Rs\.?|PKR|₨)\s*([\d,]+(?:\.\d{1,2})?)/gi)];
-    if (priceMatches.length) {
-      const prices = priceMatches
-        .map(m => parseFloat(m[1].replace(/,/g, '')))
-        .filter(n => n >= 50 && n < 10000000);
-      if (prices.length) {
-        prices.sort((a, b) => a - b);
-        data.price = prices[0];
-      }
-    }
-  }
-
-  // 8. Rating/reviews patterns
-  if (!data.rating) {
-    const rm = html.match(/"averageRating"\s*:\s*"?([\d.]+)"?/i) ||
-               html.match(/"ratingValue"\s*:\s*"?([\d.]+)"?/i) ||
-               html.match(/class="[^"]*score-average[^"]*"[^>]*>([\d.]+)/i);
-    if (rm) data.rating = parseFloat(rm[1]);
-  }
-  if (!data.reviews) {
-    const rvm = html.match(/"reviewCount"\s*:\s*"?(\d+)"?/i) ||
-                html.match(/"totalRatings"\s*:\s*"?(\d+)"?/i) ||
-                html.match(/\((\d+)\s*Ratings?\)/i);
-    if (rvm) data.reviews = parseInt(rvm[1]);
-  }
-
+  // Normalize image
   if (data.image && data.image.startsWith('//')) data.image = 'https:' + data.image;
   if (data.image && !data.image.startsWith('http')) {
     try { data.image = new URL(data.image, finalUrl).toString(); } catch (e) {}
   }
 
+  // Clean description
   if (data.description && data.description.length > 500) {
     data.description = data.description.substring(0, 500) + '…';
   }
 
+  // Round rating
   if (data.rating) data.rating = Math.round(data.rating * 10) / 10;
+
   return data;
 }
 
