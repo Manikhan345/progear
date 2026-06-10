@@ -117,7 +117,10 @@
       <div class="admin-page" id="page-products">
         <div class="admin-page-title">
           Products
-          <button class="btn-admin btn-admin-primary" onclick="openProductModal()">+ Add Product</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-left:auto">
+            <button class="btn-admin btn-admin-ghost" onclick="openDarazModal()">📱 Quick Add from Daraz</button>
+            <button class="btn-admin btn-admin-primary" onclick="openProductModal()">+ Add Product</button>
+          </div>
         </div>
         <div class="admin-card">
           <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
@@ -419,6 +422,56 @@
       <div style="margin-left:auto;display:flex;gap:12px">
         <button class="btn-admin btn-admin-primary" onclick="saveBlogPost()" style="padding:10px 24px">Save Post</button>
         <button class="btn-admin btn-admin-ghost" onclick="closeBlogModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DARAZ QUICK ADD MODAL -->
+<div class="modal-overlay" id="daraz-modal">
+  <div class="modal" style="max-width:780px">
+    <div class="modal-header">
+      <div class="modal-title">📱 Quick Add from Daraz</div>
+      <button class="modal-close" onclick="closeDarazModal()">✕</button>
+    </div>
+    <div id="daraz-step-1">
+      <div style="background:var(--neon-dim);border:1px solid rgba(0,255,136,0.2);border-radius:var(--radius);padding:14px;margin-bottom:20px;font-size:13px;color:var(--text2);line-height:1.6">
+        <strong style="color:var(--neon);text-transform:uppercase;font-family:var(--font-display);letter-spacing:0.06em">How to use</strong><br>
+        1. Open Daraz app → find product → tap Share → Copy link<br>
+        2. Paste link(s) below (one per line for bulk)<br>
+        3. Tap Fetch — product details auto-fill from Daraz<br>
+        4. Review & Save All
+      </div>
+      <div class="form-group">
+        <label>Daraz Product URL(s) — paste one per line</label>
+        <textarea id="daraz-urls" placeholder="https://www.daraz.pk/products/...&#10;https://s.daraz.pk/...&#10;https://www.daraz.pk/products/..." style="height:140px;font-family:monospace;font-size:13px"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Default Category</label>
+          <select id="daraz-default-cat"></select>
+        </div>
+        <div class="form-group">
+          <label>Affiliate Source</label>
+          <select id="daraz-default-source">
+            <option value="daraz" selected>Daraz</option>
+            <option value="telemart">Telemart</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:16px">
+        <button class="btn-admin btn-admin-primary" onclick="fetchDarazBulk()" id="daraz-fetch-btn" style="flex:1;padding:12px">Fetch Products →</button>
+        <button class="btn-admin btn-admin-ghost" onclick="closeDarazModal()">Cancel</button>
+      </div>
+    </div>
+
+    <div id="daraz-step-2" style="display:none">
+      <div id="daraz-progress" style="margin-bottom:16px;font-size:14px;color:var(--text2)"></div>
+      <div id="daraz-previews" style="display:flex;flex-direction:column;gap:12px;max-height:50vh;overflow-y:auto;margin-bottom:20px"></div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button class="btn-admin btn-admin-primary" onclick="saveDarazBulk()" id="daraz-save-btn" style="flex:1;padding:12px">Save All Products</button>
+        <button class="btn-admin btn-admin-ghost" onclick="resetDarazModal()">← Back</button>
+        <button class="btn-admin btn-admin-ghost" onclick="closeDarazModal()">Cancel</button>
       </div>
     </div>
   </div>
@@ -932,6 +985,161 @@ function showToast(msg, type='success') {
   t.className = `toast ${type}`;
   setTimeout(() => t.classList.add('show'), 10);
   setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ── Daraz Quick Add ──
+let darazFetched = []; // array of fetched product previews
+
+function openDarazModal() {
+  // Populate default category select
+  const sel = document.getElementById('daraz-default-cat');
+  sel.innerHTML = config.categories.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+  resetDarazModal();
+  document.getElementById('daraz-modal').classList.add('open');
+}
+function closeDarazModal() {
+  document.getElementById('daraz-modal').classList.remove('open');
+  resetDarazModal();
+}
+function resetDarazModal() {
+  document.getElementById('daraz-step-1').style.display = 'block';
+  document.getElementById('daraz-step-2').style.display = 'none';
+  document.getElementById('daraz-urls').value = '';
+  document.getElementById('daraz-progress').textContent = '';
+  document.getElementById('daraz-previews').innerHTML = '';
+  darazFetched = [];
+}
+
+async function fetchDarazBulk() {
+  const raw = document.getElementById('daraz-urls').value.trim();
+  if (!raw) { showToast('Paste at least one URL', 'error'); return; }
+  const urls = raw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  if (!urls.length) { showToast('No valid URLs found', 'error'); return; }
+
+  const defaultCat = document.getElementById('daraz-default-cat').value;
+  const defaultSource = document.getElementById('daraz-default-source').value;
+
+  // Move to step 2
+  document.getElementById('daraz-step-1').style.display = 'none';
+  document.getElementById('daraz-step-2').style.display = 'block';
+  const progressEl = document.getElementById('daraz-progress');
+  const previewsEl = document.getElementById('daraz-previews');
+  previewsEl.innerHTML = '';
+  darazFetched = [];
+
+  for (let i = 0; i < urls.length; i++) {
+    progressEl.innerHTML = `🔄 Fetching ${i + 1} of ${urls.length}... <span style="color:var(--text3)">(${urls[i].substring(0, 50)}...)</span>`;
+    try {
+      const r = await fetch('/api/daraz-fetch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: urls[i] })
+      });
+      const result = await r.json();
+      if (r.ok && result.name) {
+        const item = {
+          id: 'p' + Date.now() + '_' + i,
+          name: result.name || 'Untitled Product',
+          category: defaultCat,
+          price: result.price || 0,
+          image: result.image || '',
+          description: result.description || '',
+          rating: result.rating || 4.0,
+          reviews: result.reviews || 0,
+          affiliateUrl: result.affiliateUrl || urls[i],
+          affiliateSource: defaultSource,
+          tags: [],
+          features: [],
+          badge: '',
+          featured: false,
+          inStock: true,
+          _fetchError: false
+        };
+        darazFetched.push(item);
+        renderDarazPreviews();
+      } else {
+        darazFetched.push({
+          id: 'err_' + i,
+          name: '(Fetch failed)',
+          affiliateUrl: urls[i],
+          _fetchError: true,
+          _errorMsg: result.error || 'Unknown error'
+        });
+        renderDarazPreviews();
+      }
+    } catch (e) {
+      darazFetched.push({
+        id: 'err_' + i,
+        name: '(Network error)',
+        affiliateUrl: urls[i],
+        _fetchError: true,
+        _errorMsg: e.message
+      });
+      renderDarazPreviews();
+    }
+  }
+
+  const okCount = darazFetched.filter(p => !p._fetchError).length;
+  const failCount = darazFetched.length - okCount;
+  progressEl.innerHTML = `✅ Fetched ${okCount} product${okCount !== 1 ? 's' : ''}${failCount ? ` <span style="color:var(--neon2)">· ${failCount} failed</span>` : ''}`;
+}
+
+function renderDarazPreviews() {
+  const el = document.getElementById('daraz-previews');
+  el.innerHTML = darazFetched.map((p, i) => {
+    if (p._fetchError) {
+      return `<div style="background:var(--bg3);border:1px solid var(--neon2-dim);border-left:3px solid var(--neon2);border-radius:var(--radius);padding:12px;display:flex;align-items:center;gap:12px">
+        <div style="flex:1;font-size:13px"><strong style="color:var(--neon2)">Failed:</strong> ${p._errorMsg}<br><span style="color:var(--text3);font-size:11px;word-break:break-all">${p.affiliateUrl}</span></div>
+        <button class="btn-admin btn-admin-danger" onclick="removeDarazItem(${i})" style="padding:4px 10px">✕</button>
+      </div>`;
+    }
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px;display:flex;gap:12px;align-items:flex-start">
+      <img src="${p.image || ''}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:4px;background:var(--surface);flex-shrink:0">
+      <div style="flex:1;min-width:0">
+        <input type="text" value="${escapeHtml(p.name)}" oninput="updateDarazItem(${i},'name',this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);font-size:13px;font-weight:600;margin-bottom:6px">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px">
+          <span style="color:var(--neon);font-weight:700">Rs. ${Number(p.price).toLocaleString()}</span>
+          <span style="color:var(--text3)">· ⭐ ${p.rating} (${p.reviews})</span>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+          <select onchange="updateDarazItem(${i},'category',this.value)" style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);font-size:12px">
+            ${config.categories.map(c => `<option value="${c.id}" ${c.id===p.category?'selected':''}>${c.icon} ${c.name}</option>`).join('')}
+          </select>
+          <label style="display:flex;align-items:center;gap:4px;color:var(--text2);font-size:12px;cursor:pointer">
+            <input type="checkbox" ${p.featured?'checked':''} onchange="updateDarazItem(${i},'featured',this.checked)"> Featured
+          </label>
+        </div>
+      </div>
+      <button class="btn-admin btn-admin-danger" onclick="removeDarazItem(${i})" style="padding:4px 10px;flex-shrink:0">✕</button>
+    </div>`;
+  }).join('');
+}
+function updateDarazItem(idx, key, val) {
+  if (darazFetched[idx]) darazFetched[idx][key] = val;
+}
+function removeDarazItem(idx) {
+  darazFetched.splice(idx, 1);
+  renderDarazPreviews();
+  const okCount = darazFetched.filter(p => !p._fetchError).length;
+  document.getElementById('daraz-progress').innerHTML = `✅ ${okCount} product${okCount !== 1 ? 's' : ''} ready`;
+}
+async function saveDarazBulk() {
+  const toSave = darazFetched.filter(p => !p._fetchError);
+  if (!toSave.length) { showToast('No products to save', 'error'); return; }
+  toSave.forEach(p => {
+    const { _fetchError, _errorMsg, ...clean } = p;
+    config.products.push({ ...clean, images: [] });
+  });
+  document.getElementById('daraz-save-btn').textContent = 'Saving & deploying...';
+  document.getElementById('daraz-save-btn').disabled = true;
+  const ok = await saveToGitHub();
+  closeDarazModal();
+  renderProductTable();
+  renderDashboard();
+  if (ok) showToast(`✅ Added ${toSave.length} products`);
+}
+function escapeHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 init();
