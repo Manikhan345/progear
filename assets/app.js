@@ -43,12 +43,16 @@ const PG = {
   productCard(p) {
     const cat = this.config.categories.find(c => c.id === p.category);
     const badge = p.badge ? `<div class="product-badge">${p.badge}</div>` : '';
+    const discountBadge = (p.discount && p.discount > 0) ? `<div class="product-badge red" style="top:${p.badge?'38px':'10px'}">-${p.discount}%</div>` : '';
     const tags = (p.tags || []).slice(0, 3).map(t => `<span class="product-tag">${t}</span>`).join('');
+    const originalPrice = (p.originalPrice && p.originalPrice > p.price) ? `<span style="text-decoration:line-through;color:var(--text3);font-size:13px;font-weight:500;margin-left:6px">${this.price(p.originalPrice)}</span>` : '';
+    const soldInfo = p.sold ? `<div style="font-size:11px;color:var(--text3);margin-top:4px">${Number(p.sold).toLocaleString()}+ sold</div>` : '';
     return `
       <div class="product-card reveal">
         <div class="product-img-wrap">
           <img src="${p.image}" alt="${p.name}" loading="lazy">
           ${badge}
+          ${discountBadge}
         </div>
         <div class="product-body">
           <div class="product-cat">${cat ? cat.icon + ' ' + cat.name : ''}</div>
@@ -58,8 +62,9 @@ const PG = {
             ${this.starsHTML(p.rating)}
             <span class="rating-count">(${Number(p.reviews).toLocaleString()})</span>
           </div>
+          ${soldInfo}
           <div class="product-footer">
-            <div class="product-price">${this.price(p.price)} <span>PKR</span></div>
+            <div class="product-price">${this.price(p.price)} <span>PKR</span>${originalPrice}</div>
             <a href="/product.html?id=${p.id}" class="product-btn">View →</a>
           </div>
         </div>
