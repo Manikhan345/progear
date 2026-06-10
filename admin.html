@@ -1044,10 +1044,13 @@ async function fetchDarazBulk() {
           name: result.name || 'Untitled Product',
           category: defaultCat,
           price: result.price || 0,
+          originalPrice: result.originalPrice || 0,
+          discount: result.discount || 0,
           image: result.image || '',
           description: result.description || '',
           rating: result.rating || 4.0,
           reviews: result.reviews || 0,
+          sold: result.sold || 0,
           affiliateUrl: result.affiliateUrl || urls[i],
           affiliateSource: defaultSource,
           tags: [],
@@ -1099,9 +1102,12 @@ function renderDarazPreviews() {
       <img src="${p.image || ''}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:4px;background:var(--surface);flex-shrink:0">
       <div style="flex:1;min-width:0">
         <input type="text" value="${escapeHtml(p.name)}" oninput="updateDarazItem(${i},'name',this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);font-size:13px;font-weight:600;margin-bottom:6px">
-        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px">
-          <span style="color:var(--neon);font-weight:700">Rs. ${Number(p.price).toLocaleString()}</span>
-          <span style="color:var(--text3)">· ⭐ ${p.rating} (${p.reviews})</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12px">
+          <span style="color:${p.price>0?'var(--neon)':'var(--neon2)'};font-weight:700">Rs. ${Number(p.price).toLocaleString()}</span>
+          ${p.originalPrice && p.originalPrice > p.price ? `<span style="color:var(--text3);text-decoration:line-through">Rs. ${Number(p.originalPrice).toLocaleString()}</span>` : ''}
+          ${p.discount ? `<span style="color:var(--neon2);font-weight:700">-${p.discount}%</span>` : ''}
+          <span style="color:var(--text3)">· ⭐ ${p.rating} (${Number(p.reviews).toLocaleString()})</span>
+          ${p.sold ? `<span style="color:var(--text3)">· ${Number(p.sold).toLocaleString()} sold</span>` : ''}
         </div>
         <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
           <select onchange="updateDarazItem(${i},'category',this.value)" style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);font-size:12px">
