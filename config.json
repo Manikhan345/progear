@@ -230,34 +230,6 @@
       "inStock": true
     },
     {
-      "id": "p006",
-      "name": "Havit HV-KB395L RGB Keyboard",
-      "category": "keyboards",
-      "tags": [
-        "Membrane",
-        "Full Size",
-        "RGB"
-      ],
-      "price": 2800,
-      "image": "https://images.unsplash.com/photo-1595044778984-c27087b0eb8d?w=600&q=80",
-      "images": [],
-      "rating": 4.1,
-      "reviews": 670,
-      "badge": "Budget Pick",
-      "description": "Full-size RGB gaming keyboard with quiet membrane switches. Perfect entry-level pick.",
-      "features": [
-        "Rainbow RGB backlight",
-        "19-key anti-ghosting",
-        "Water resistant",
-        "Ergonomic wrist rest",
-        "Multimedia keys"
-      ],
-      "affiliateUrl": "https://www.daraz.pk/products/",
-      "affiliateSource": "daraz",
-      "featured": false,
-      "inStock": true
-    },
-    {
       "id": "p1781103695314_0",
       "name": "PRO II RGB Gaming Headphones with Noise Cancelling Mic, 7.1 Surround Sound, Super Bass, Vibration, Soft Memory Foam Ear Cushions, for PC, PS4, Mobile, Laptop, and Gaming Consoles - Unique Mall",
       "category": "headsets",
