@@ -1029,6 +1029,8 @@ async function fetchDarazBulk() {
 
   for (let i = 0; i < urls.length; i++) {
     progressEl.innerHTML = `🔄 Fetching ${i + 1} of ${urls.length}... <span style="color:var(--text3)">(${urls[i].substring(0, 50)}...)</span>`;
+    // Small delay between requests to avoid rate limiting (skip on first)
+    if (i > 0) await new Promise(r => setTimeout(r, 800));
     try {
       const r = await fetch('/api/daraz-fetch', {
         method: 'POST',
