@@ -203,33 +203,6 @@
       "inStock": true
     },
     {
-      "id": "p004",
-      "name": "Sony DualShock 4 Controller",
-      "category": "controllers",
-      "tags": [
-        "PlayStation",
-        "Wireless"
-      ],
-      "price": 12000,
-      "image": "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=600&q=80",
-      "images": [],
-      "rating": 4.6,
-      "reviews": 5600,
-      "badge": "Official",
-      "description": "Official Sony PS4 controller. Works on PS4 and PC. The gold standard in console gaming.",
-      "features": [
-        "DualShock vibration feedback",
-        "Touchpad & light bar",
-        "3.5mm audio jack",
-        "Built-in speaker",
-        "USB & Bluetooth"
-      ],
-      "affiliateUrl": "https://www.daraz.pk/products/",
-      "affiliateSource": "daraz",
-      "featured": false,
-      "inStock": true
-    },
-    {
       "id": "p1781167979833_0",
       "name": "FunBug Pro Gaming Headset with RGB Lights, Noise Cancelling Mic, USB/3.5mm Plug - Comfortable Ear Cushions, On-Headset Audio Control, New",
       "category": "headsets",
