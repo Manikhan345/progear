@@ -314,8 +314,9 @@
     </div>
     <div class="form-group">
       <label>Tags</label>
+      <div id="p-tag-suggestions" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;padding:8px;background:var(--bg3);border:1px dashed var(--border);border-radius:var(--radius);min-height:36px"></div>
       <div class="tag-input-wrap" id="p-tags-wrap">
-        <input type="text" id="p-tag-input" placeholder="Type tag and press Enter..." onkeydown="addTag(event,'p-tags-state','p-tags-wrap','p-tag-input')">
+        <input type="text" id="p-tag-input" placeholder="Or type custom tag and press Enter..." onkeydown="addTag(event,'p-tags-state','p-tags-wrap','p-tag-input')">
       </div>
     </div>
     <div class="form-row" style="margin-top:8px">
@@ -638,6 +639,33 @@ function populateCatSelect() {
   const filter = document.getElementById('product-cat-filter');
   sel.innerHTML = config.categories.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
   filter.innerHTML = '<option value="">All Categories</option>' + config.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  // When category changes, refresh tag suggestions
+  sel.onchange = () => renderProductTagSuggestions();
+}
+
+function renderProductTagSuggestions() {
+  const catId = document.getElementById('p-category').value;
+  const cat = config.categories.find(c => c.id === catId);
+  const suggestions = (cat && cat.tags) || [];
+  const sugEl = document.getElementById('p-tag-suggestions');
+  if (!sugEl) return;
+  if (!suggestions.length) {
+    sugEl.innerHTML = '<span style="color:var(--text3);font-size:11px;font-style:italic">No tags defined for this category. Add tags in Categories page.</span>';
+    return;
+  }
+  sugEl.innerHTML = `<span style="color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:0.06em;width:100%;margin-bottom:2px">Click to add:</span>` +
+    suggestions.map(tag => {
+      const selected = pTagsState.includes(tag);
+      return `<button type="button" onclick="toggleProductTag('${tag.replace(/'/g, "\\'")}'); return false;" style="font-size:11px;padding:3px 10px;border:1px solid ${selected?'var(--neon)':'var(--border)'};border-radius:3px;background:${selected?'var(--neon-dim)':'transparent'};color:${selected?'var(--neon)':'var(--text2)'};cursor:pointer;font-family:var(--font-display);font-weight:600;text-transform:uppercase;letter-spacing:0.04em">${tag}</button>`;
+    }).join('');
+}
+
+function toggleProductTag(tag) {
+  const idx = pTagsState.indexOf(tag);
+  if (idx === -1) pTagsState.push(tag);
+  else pTagsState.splice(idx, 1);
+  renderTagPills('p-tags-state', pTagsState, 'p-tags-wrap', 'p-tag-input');
+  renderProductTagSuggestions();
 }
 function renderProductTable() {
   const q = (document.getElementById('product-search')?.value || '').toLowerCase();
@@ -700,6 +728,7 @@ function openProductModal(id) {
     renderTagPills('p-tags-state', pTagsState, 'p-tags-wrap', 'p-tag-input');
     if (p.image) { document.getElementById('p-img-preview').src = p.image; document.getElementById('p-img-preview').className = 'admin-img-preview show'; }
   }
+  renderProductTagSuggestions();
   document.getElementById('product-modal').classList.add('open');
 }
 function editProduct(id) { openProductModal(id); }
@@ -980,11 +1009,13 @@ function addTag(e, stateKey, wrapId, inputId) {
   const state = stateKey === 'p-tags-state' ? pTagsState : cTagsState;
   if (!state.includes(val)) { state.push(val); renderTagPills(stateKey, state, wrapId, inputId); }
   document.getElementById(inputId).value = '';
+  if (stateKey === 'p-tags-state') renderProductTagSuggestions();
 }
 function removeTag(stateKey, idx, wrapId, inputId) {
   const state = stateKey === 'p-tags-state' ? pTagsState : cTagsState;
   state.splice(idx, 1);
   renderTagPills(stateKey, state, wrapId, inputId);
+  if (stateKey === 'p-tags-state') renderProductTagSuggestions();
 }
 function renderTagPills(stateKey, state, wrapId, inputId) {
   const wrap = document.getElementById(wrapId);
@@ -1195,8 +1226,8 @@ function renderDarazPreviews() {
           </div>
         </div>
 
-        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-          <select onchange="updateDarazItem(${i},'category',this.value)" style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);font-size:12px">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+          <select onchange="updateDarazItem(${i},'category',this.value);renderDarazPreviews()" style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);font-size:12px">
             ${config.categories.map(c => `<option value="${c.id}" ${c.id===p.category?'selected':''}>${c.icon} ${c.name}</option>`).join('')}
           </select>
           <label style="display:flex;align-items:center;gap:4px;color:var(--text2);font-size:12px;cursor:pointer">
@@ -1207,6 +1238,8 @@ function renderDarazPreviews() {
           </label>
           <a href="${p.affiliateUrl}" target="_blank" style="color:var(--neon);font-size:11px;text-decoration:underline;margin-left:auto">View on Daraz ↗</a>
         </div>
+
+        ${renderDarazItemTags(i, p)}
       </div>
       <button class="btn-admin btn-admin-danger" onclick="removeDarazItem(${i})" style="padding:4px 10px;flex-shrink:0">✕</button>
     </div>`;
@@ -1214,6 +1247,32 @@ function renderDarazPreviews() {
 }
 function updateDarazItem(idx, key, val) {
   if (darazFetched[idx]) darazFetched[idx][key] = val;
+}
+
+function renderDarazItemTags(idx, p) {
+  const cat = config.categories.find(c => c.id === p.category);
+  const availableTags = (cat && cat.tags) || [];
+  if (!availableTags.length) {
+    return '<div style="font-size:11px;color:var(--text3);font-style:italic;padding:4px 0">No tags defined for this category</div>';
+  }
+  const selected = p.tags || [];
+  return `<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding-top:8px;border-top:1px dashed var(--border)">
+    <span style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-right:4px">Tags:</span>
+    ${availableTags.map(t => {
+      const isSel = selected.includes(t);
+      return `<button type="button" onclick="toggleDarazTag(${idx},'${t.replace(/'/g, "\\'")}'); return false;" style="font-size:10px;padding:2px 8px;border:1px solid ${isSel?'var(--neon)':'var(--border)'};border-radius:3px;background:${isSel?'var(--neon-dim)':'transparent'};color:${isSel?'var(--neon)':'var(--text3)'};cursor:pointer;font-family:var(--font-display);font-weight:600;text-transform:uppercase;letter-spacing:0.04em">${t}</button>`;
+    }).join('')}
+  </div>`;
+}
+
+function toggleDarazTag(idx, tag) {
+  if (!darazFetched[idx]) return;
+  if (!darazFetched[idx].tags) darazFetched[idx].tags = [];
+  const tags = darazFetched[idx].tags;
+  const i = tags.indexOf(tag);
+  if (i === -1) tags.push(tag);
+  else tags.splice(i, 1);
+  renderDarazPreviews();
 }
 function removeDarazItem(idx) {
   darazFetched.splice(idx, 1);
