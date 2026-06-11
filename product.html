@@ -62,6 +62,11 @@
   const sourceMap = { daraz: 'Daraz', telemart: 'Telemart' };
   const sourceName = sourceMap[p.affiliateSource] || 'Retailer';
   const btnClass = p.affiliateSource === 'telemart' ? 'btn-buy-telemart' : 'btn-buy-daraz';
+  const isAffiliate = p.isAffiliate !== false; // default true for older products
+  const buyText = isAffiliate ? `🛒 Buy on ${sourceName}` : `🔗 View on ${sourceName}`;
+  const disclaimerText = isAffiliate
+    ? `⚡ Clicking takes you to ${sourceName}. We may earn a small commission — no extra cost to you.`
+    : `🔗 Clicking takes you directly to ${sourceName} where you can buy this product.`;
 
   // Related products
   const related = cfg.products.filter(x => x.id !== p.id && x.category === p.category).slice(0, 3);
@@ -93,10 +98,10 @@
         <p class="product-detail-desc">${p.description}</p>
         ${features ? `<ul class="product-detail-features">${features}</ul>` : ''}
         <div class="product-detail-cta">
-          <a href="${p.affiliateUrl}" target="_blank" rel="noopener sponsored" class="btn-buy ${btnClass}">
-            🛒 Buy on ${sourceName}
+          <a href="${p.affiliateUrl}" target="_blank" rel="noopener${isAffiliate ? ' sponsored' : ''}" class="btn-buy ${btnClass}">
+            ${buyText}
           </a>
-          <div class="affiliate-disclaimer">⚡ Clicking takes you to ${sourceName}. We may earn a small commission — no extra cost to you.</div>
+          <div class="affiliate-disclaimer">${disclaimerText}</div>
         </div>
       </div>
     </div>
