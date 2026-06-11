@@ -175,34 +175,6 @@
       "inStock": true
     },
     {
-      "id": "p003",
-      "name": "HyperX Cloud Stinger Gaming Headset",
-      "category": "headsets",
-      "tags": [
-        "Stereo",
-        "PC",
-        "Console"
-      ],
-      "price": 8500,
-      "image": "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=600&q=80",
-      "images": [],
-      "rating": 4.4,
-      "reviews": 2100,
-      "badge": "Popular",
-      "description": "Lightweight gaming headset with swivel-to-mute mic and 50mm directional drivers.",
-      "features": [
-        "50mm directional drivers",
-        "Swivel-to-mute microphone",
-        "Adjustable steel slider",
-        "Works on PC, PS4, Xbox, Mobile",
-        "Volume control on ear cup"
-      ],
-      "affiliateUrl": "https://www.daraz.pk/products/",
-      "affiliateSource": "daraz",
-      "featured": true,
-      "inStock": true
-    },
-    {
       "id": "p1781167979833_0",
       "name": "FunBug Pro Gaming Headset with RGB Lights, Noise Cancelling Mic, USB/3.5mm Plug - Comfortable Ear Cushions, On-Headset Audio Control, New",
       "category": "headsets",
