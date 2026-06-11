@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daraz Debug — ProGear</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <style>
+    body { background: var(--bg); color: var(--text); padding: 24px; }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    h1 { font-family: var(--font-display); font-size: 32px; text-transform: uppercase; margin-bottom: 24px; }
+    .input-group { display: flex; gap: 8px; margin-bottom: 20px; }
+    input { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; color: var(--text); font-family: monospace; font-size: 13px; }
+    button { background: var(--neon); color: #000; border: none; padding: 10px 20px; border-radius: var(--radius); font-weight: 700; cursor: pointer; font-family: var(--font-display); text-transform: uppercase; }
+    pre { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; overflow-x: auto; font-size: 12px; color: var(--text2); line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
+    .label { font-family: var(--font-display); font-size: 14px; text-transform: uppercase; color: var(--neon); margin: 20px 0 8px; letter-spacing: 0.06em; }
+    .row { display: grid; grid-template-columns: 200px 1fr; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .row-key { color: var(--text3); font-size: 13px; }
+    .row-val { color: var(--text); font-size: 13px; font-family: monospace; word-break: break-all; }
+    .good { color: var(--neon); }
+    .bad { color: var(--neon2); }
+    a { color: var(--neon); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔍 Daraz Fetch Debug</h1>
+
+  <p style="color:var(--text2);margin-bottom:16px">Paste a Daraz URL below. This will show exactly what the API extracts — useful for debugging why prices aren't coming through.</p>
+
+  <div class="input-group">
+    <input type="text" id="url" placeholder="https://s.daraz.pk/s.cozMx?cc">
+    <button onclick="test()">Test Fetch</button>
+  </div>
+
+  <div id="results" style="display:none">
+    <div class="label">Result</div>
+    <div id="summary"></div>
+
+    <div class="label">Full API Response (JSON)</div>
+    <pre id="raw"></pre>
+  </div>
+
+  <p style="margin-top:32px;font-size:13px;color:var(--text3)">
+    <a href="/admin.html">← Back to Admin</a>
+  </p>
+</div>
+
+<script>
+async function test() {
+  const url = document.getElementById('url').value.trim();
+  if (!url) return;
+
+  const resultsEl = document.getElementById('results');
+  const summaryEl = document.getElementById('summary');
+  const rawEl = document.getElementById('raw');
+  resultsEl.style.display = 'block';
+  summaryEl.innerHTML = '<div style="color:var(--text2)">🔄 Fetching...</div>';
+  rawEl.textContent = '';
+
+  try {
+    const r = await fetch('/api/daraz-fetch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url, debug: true })
+    });
+    const data = await r.json();
+
+    const fields = [
+      ['HTTP Status', r.status, r.ok ? 'good' : 'bad'],
+      ['Final URL', data.sourceUrl || data.finalUrl || '—'],
+      ['Redirect Hops', data.hops || (data._debug && data._debug.hops) || '—'],
+      ['HTML Length', (data._debug && data._debug.htmlLen) || '—'],
+      ['Has window.runParams?', (data._debug && data._debug.hasRunParams !== undefined) ? (data._debug.hasRunParams ? '✅ YES' : '❌ NO') : '—', (data._debug && data._debug.hasRunParams) ? 'good' : 'bad'],
+      ['', ''],
+      ['Name', data.name || '(none)', data.name ? 'good' : 'bad'],
+      ['Image', data.image ? data.image.substring(0, 80) + '...' : '(none)', data.image ? 'good' : 'bad'],
+      ['Price', data.price ? 'Rs. ' + data.price : '(none)', data.price ? 'good' : 'bad'],
+      ['Original Price', data.originalPrice ? 'Rs. ' + data.originalPrice : '(none)'],
+      ['Discount', data.discount ? data.discount + '%' : '(none)'],
+      ['Rating', data.rating || '(none)', data.rating ? 'good' : 'bad'],
+      ['Reviews', data.reviews || '(none)', data.reviews ? 'good' : 'bad'],
+      ['Sold Count', data.sold || '(none)', data.sold ? 'good' : 'bad'],
+      ['Description', data.description ? data.description.substring(0, 100) + '...' : '(none)'],
+      ['Error', data.error || '(none)', data.error ? 'bad' : 'good'],
+    ];
+
+    summaryEl.innerHTML = fields.map(([k, v, cls]) => k ? `<div class="row"><div class="row-key">${k}</div><div class="row-val ${cls||''}">${v}</div></div>` : '<div style="height:8px"></div>').join('');
+    rawEl.textContent = JSON.stringify(data, null, 2);
+  } catch (e) {
+    summaryEl.innerHTML = `<div class="bad">Error: ${e.message}</div>`;
+  }
+}
+</script>
+</body>
+</html>
