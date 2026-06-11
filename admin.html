@@ -439,8 +439,9 @@
         <strong style="color:var(--neon);text-transform:uppercase;font-family:var(--font-display);letter-spacing:0.06em">How to use</strong><br>
         1. Open Daraz app → find product → tap Share → Copy link<br>
         2. Paste link(s) below (one per line for bulk)<br>
-        3. Tap Fetch — product details auto-fill from Daraz<br>
-        4. Review & Save All
+        3. System auto-fetches <strong style="color:var(--text)">name + image + URL</strong><br>
+        4. You quickly type <strong style="color:var(--text)">price + rating + reviews</strong> by glancing at the Daraz screen<br>
+        5. Tap Save All
       </div>
       <div class="form-group">
         <label>Daraz Product URL(s) — paste one per line</label>
@@ -1101,21 +1102,35 @@ function renderDarazPreviews() {
     return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px;display:flex;gap:12px;align-items:flex-start">
       <img src="${p.image || ''}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:4px;background:var(--surface);flex-shrink:0">
       <div style="flex:1;min-width:0">
-        <input type="text" value="${escapeHtml(p.name)}" oninput="updateDarazItem(${i},'name',this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);font-size:13px;font-weight:600;margin-bottom:6px">
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12px">
-          <span style="color:${p.price>0?'var(--neon)':'var(--neon2)'};font-weight:700">Rs. ${Number(p.price).toLocaleString()}</span>
-          ${p.originalPrice && p.originalPrice > p.price ? `<span style="color:var(--text3);text-decoration:line-through">Rs. ${Number(p.originalPrice).toLocaleString()}</span>` : ''}
-          ${p.discount ? `<span style="color:var(--neon2);font-weight:700">-${p.discount}%</span>` : ''}
-          <span style="color:var(--text3)">· ⭐ ${p.rating} (${Number(p.reviews).toLocaleString()})</span>
-          ${p.sold ? `<span style="color:var(--text3)">· ${Number(p.sold).toLocaleString()} sold</span>` : ''}
+        <input type="text" value="${escapeHtml(p.name)}" oninput="updateDarazItem(${i},'name',this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);font-size:13px;font-weight:600;margin-bottom:8px">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:8px">
+          <div>
+            <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">Price (Rs.)</label>
+            <input type="number" value="${p.price||''}" placeholder="0" oninput="updateDarazItem(${i},'price',parseFloat(this.value)||0)" style="width:100%;background:var(--bg);border:1px solid ${p.price>0?'var(--border)':'rgba(255,51,102,0.5)'};border-radius:4px;padding:4px 6px;color:var(--text);font-size:13px;font-weight:700">
+          </div>
+          <div>
+            <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">Was (Rs.)</label>
+            <input type="number" value="${p.originalPrice||''}" placeholder="opt" oninput="updateDarazItem(${i},'originalPrice',parseFloat(this.value)||0)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:4px 6px;color:var(--text);font-size:13px">
+          </div>
+          <div>
+            <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">⭐ Rating</label>
+            <input type="number" step="0.1" min="1" max="5" value="${p.rating||''}" placeholder="4.5" oninput="updateDarazItem(${i},'rating',parseFloat(this.value)||0)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:4px 6px;color:var(--text);font-size:13px">
+          </div>
+          <div>
+            <label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">Reviews</label>
+            <input type="number" value="${p.reviews||''}" placeholder="0" oninput="updateDarazItem(${i},'reviews',parseInt(this.value)||0)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:4px 6px;color:var(--text);font-size:13px">
+          </div>
         </div>
-        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
           <select onchange="updateDarazItem(${i},'category',this.value)" style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--text);font-size:12px">
             ${config.categories.map(c => `<option value="${c.id}" ${c.id===p.category?'selected':''}>${c.icon} ${c.name}</option>`).join('')}
           </select>
           <label style="display:flex;align-items:center;gap:4px;color:var(--text2);font-size:12px;cursor:pointer">
             <input type="checkbox" ${p.featured?'checked':''} onchange="updateDarazItem(${i},'featured',this.checked)"> Featured
           </label>
+          <a href="${p.affiliateUrl}" target="_blank" style="color:var(--neon);font-size:11px;text-decoration:underline;margin-left:auto">View on Daraz ↗</a>
         </div>
       </div>
       <button class="btn-admin btn-admin-danger" onclick="removeDarazItem(${i})" style="padding:4px 10px;flex-shrink:0">✕</button>
