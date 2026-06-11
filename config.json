@@ -147,34 +147,6 @@
       "inStock": true
     },
     {
-      "id": "p002",
-      "name": "Logitech G102 Gaming Mouse",
-      "category": "mice",
-      "tags": [
-        "Wired",
-        "RGB",
-        "Lightweight"
-      ],
-      "price": 3200,
-      "image": "https://images.unsplash.com/photo-1527814050087-3793815479db?w=600&q=80",
-      "images": [],
-      "rating": 4.7,
-      "reviews": 3800,
-      "badge": "Top Rated",
-      "description": "6-button programmable gaming mouse with 8000 DPI optical sensor. A staple for Pakistani gamers.",
-      "features": [
-        "8000 DPI sensor",
-        "6 programmable buttons",
-        "RGB lighting",
-        "1.8m braided cable",
-        "16.8M color"
-      ],
-      "affiliateUrl": "https://www.daraz.pk/products/",
-      "affiliateSource": "daraz",
-      "featured": true,
-      "inStock": true
-    },
-    {
       "id": "p1781167979833_0",
       "name": "FunBug Pro Gaming Headset with RGB Lights, Noise Cancelling Mic, USB/3.5mm Plug - Comfortable Ear Cushions, On-Headset Audio Control, New",
       "category": "headsets",
