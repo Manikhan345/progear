@@ -436,17 +436,31 @@
     </div>
     <div id="daraz-step-1">
       <div style="background:var(--neon-dim);border:1px solid rgba(0,255,136,0.2);border-radius:var(--radius);padding:14px;margin-bottom:20px;font-size:13px;color:var(--text2);line-height:1.6">
-        <strong style="color:var(--neon);text-transform:uppercase;font-family:var(--font-display);letter-spacing:0.06em">How to use</strong><br>
-        1. Open Daraz app → find product → tap Share → Copy link<br>
-        2. Paste link(s) below (one per line for bulk)<br>
-        3. System auto-fetches <strong style="color:var(--text)">name + image + URL</strong><br>
-        4. You quickly type <strong style="color:var(--text)">price + rating + reviews</strong> by glancing at the Daraz screen<br>
-        5. Tap Save All
+        <strong style="color:var(--neon);text-transform:uppercase;font-family:var(--font-display);letter-spacing:0.06em">📱 2 ways to add products</strong><br>
+        <strong style="color:var(--text)">A) URL paste</strong> — paste Daraz share links (slow, partial data)<br>
+        <strong style="color:var(--text)">B) Chrome Extension</strong> — scrape full data from any Daraz page, paste JSON below (RECOMMENDED)
       </div>
-      <div class="form-group">
-        <label>Daraz Product URL(s) — paste one per line</label>
-        <textarea id="daraz-urls" placeholder="https://www.daraz.pk/products/...&#10;https://s.daraz.pk/...&#10;https://www.daraz.pk/products/..." style="height:140px;font-family:monospace;font-size:13px"></textarea>
+
+      <div style="display:flex;gap:6px;margin-bottom:16px">
+        <button class="btn-admin btn-admin-ghost" id="mode-url-btn" onclick="setDarazMode('url')" style="flex:1">🔗 URL Mode</button>
+        <button class="btn-admin btn-admin-primary" id="mode-json-btn" onclick="setDarazMode('json')" style="flex:1">📋 JSON from Extension</button>
       </div>
+
+      <div id="daraz-url-mode">
+        <div class="form-group">
+          <label>Daraz Product URL(s) — paste one per line</label>
+          <textarea id="daraz-urls" placeholder="https://www.daraz.pk/products/...&#10;https://s.daraz.pk/...&#10;https://www.daraz.pk/products/..." style="height:140px;font-family:monospace;font-size:13px"></textarea>
+        </div>
+      </div>
+
+      <div id="daraz-json-mode" style="display:none">
+        <div class="form-group">
+          <label>Paste JSON from ProGear Daraz Extension</label>
+          <textarea id="daraz-json" placeholder="Paste the JSON array copied from the Chrome extension here..." style="height:140px;font-family:monospace;font-size:11px"></textarea>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px">Click the Chrome extension on any Daraz page → it auto-copies → paste here</div>
+        </div>
+      </div>
+
       <div class="form-row">
         <div class="form-group">
           <label>Default Category</label>
@@ -461,7 +475,7 @@
         </div>
       </div>
       <div style="display:flex;gap:12px;margin-top:16px">
-        <button class="btn-admin btn-admin-primary" onclick="fetchDarazBulk()" id="daraz-fetch-btn" style="flex:1;padding:12px">Fetch Products →</button>
+        <button class="btn-admin btn-admin-primary" onclick="fetchDarazBulk()" id="daraz-fetch-btn" style="flex:1;padding:12px">Process Products →</button>
         <button class="btn-admin btn-admin-ghost" onclick="closeDarazModal()">Cancel</button>
       </div>
     </div>
@@ -1011,16 +1025,66 @@ function resetDarazModal() {
   darazFetched = [];
 }
 
+let darazMode = 'json'; // 'url' or 'json' — default to JSON since it's better
+
+function setDarazMode(mode) {
+  darazMode = mode;
+  document.getElementById('daraz-url-mode').style.display = mode === 'url' ? 'block' : 'none';
+  document.getElementById('daraz-json-mode').style.display = mode === 'json' ? 'block' : 'none';
+  document.getElementById('mode-url-btn').className = 'btn-admin ' + (mode === 'url' ? 'btn-admin-primary' : 'btn-admin-ghost');
+  document.getElementById('mode-json-btn').className = 'btn-admin ' + (mode === 'json' ? 'btn-admin-primary' : 'btn-admin-ghost');
+}
+
 async function fetchDarazBulk() {
+  const defaultCat = document.getElementById('daraz-default-cat').value;
+  const defaultSource = document.getElementById('daraz-default-source').value;
+
+  // ── JSON Mode (from Chrome extension) ──
+  if (darazMode === 'json') {
+    const raw = document.getElementById('daraz-json').value.trim();
+    if (!raw) { showToast('Paste JSON from extension first', 'error'); return; }
+    let parsed;
+    try { parsed = JSON.parse(raw); }
+    catch (e) { showToast('Invalid JSON: ' + e.message, 'error'); return; }
+    if (!Array.isArray(parsed)) parsed = [parsed];
+    if (!parsed.length) { showToast('No products in JSON', 'error'); return; }
+
+    // Move to step 2
+    document.getElementById('daraz-step-1').style.display = 'none';
+    document.getElementById('daraz-step-2').style.display = 'block';
+    darazFetched = parsed.map((p, i) => ({
+      id: 'p' + Date.now() + '_' + i,
+      name: p.name || 'Untitled Product',
+      category: defaultCat,
+      price: p.price || 0,
+      originalPrice: p.originalPrice || 0,
+      discount: p.discount || 0,
+      image: p.image || '',
+      images: p.images || [],
+      description: p.description || '',
+      rating: p.rating || 4.0,
+      reviews: p.reviews || 0,
+      sold: p.sold || 0,
+      affiliateUrl: p.affiliateUrl || '',
+      affiliateSource: defaultSource,
+      tags: [],
+      features: [],
+      badge: '',
+      featured: false,
+      inStock: true,
+      _fetchError: false
+    }));
+    document.getElementById('daraz-progress').innerHTML = `✅ Loaded ${darazFetched.length} product${darazFetched.length !== 1 ? 's' : ''} from extension`;
+    renderDarazPreviews();
+    return;
+  }
+
+  // ── URL Mode (server-side fetch — slower, partial data) ──
   const raw = document.getElementById('daraz-urls').value.trim();
   if (!raw) { showToast('Paste at least one URL', 'error'); return; }
   const urls = raw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
   if (!urls.length) { showToast('No valid URLs found', 'error'); return; }
 
-  const defaultCat = document.getElementById('daraz-default-cat').value;
-  const defaultSource = document.getElementById('daraz-default-source').value;
-
-  // Move to step 2
   document.getElementById('daraz-step-1').style.display = 'none';
   document.getElementById('daraz-step-2').style.display = 'block';
   const progressEl = document.getElementById('daraz-progress');
@@ -1030,7 +1094,6 @@ async function fetchDarazBulk() {
 
   for (let i = 0; i < urls.length; i++) {
     progressEl.innerHTML = `🔄 Fetching ${i + 1} of ${urls.length}... <span style="color:var(--text3)">(${urls[i].substring(0, 50)}...)</span>`;
-    // Small delay between requests to avoid rate limiting (skip on first)
     if (i > 0) await new Promise(r => setTimeout(r, 800));
     try {
       const r = await fetch('/api/daraz-fetch', {
@@ -1040,9 +1103,9 @@ async function fetchDarazBulk() {
       });
       const result = await r.json();
       if (r.ok && result.name) {
-        const item = {
+        darazFetched.push({
           id: 'p' + Date.now() + '_' + i,
-          name: result.name || 'Untitled Product',
+          name: result.name,
           category: defaultCat,
           price: result.price || 0,
           originalPrice: result.originalPrice || 0,
@@ -1054,33 +1117,15 @@ async function fetchDarazBulk() {
           sold: result.sold || 0,
           affiliateUrl: result.affiliateUrl || urls[i],
           affiliateSource: defaultSource,
-          tags: [],
-          features: [],
-          badge: '',
-          featured: false,
-          inStock: true,
-          _fetchError: false
-        };
-        darazFetched.push(item);
-        renderDarazPreviews();
-      } else {
-        darazFetched.push({
-          id: 'err_' + i,
-          name: '(Fetch failed)',
-          affiliateUrl: urls[i],
-          _fetchError: true,
-          _errorMsg: result.error || 'Unknown error'
+          tags: [], features: [], badge: '',
+          featured: false, inStock: true, _fetchError: false
         });
-        renderDarazPreviews();
+      } else {
+        darazFetched.push({ id: 'err_' + i, name: '(Fetch failed)', affiliateUrl: urls[i], _fetchError: true, _errorMsg: result.error || 'Unknown error' });
       }
+      renderDarazPreviews();
     } catch (e) {
-      darazFetched.push({
-        id: 'err_' + i,
-        name: '(Network error)',
-        affiliateUrl: urls[i],
-        _fetchError: true,
-        _errorMsg: e.message
-      });
+      darazFetched.push({ id: 'err_' + i, name: '(Network error)', affiliateUrl: urls[i], _fetchError: true, _errorMsg: e.message });
       renderDarazPreviews();
     }
   }
