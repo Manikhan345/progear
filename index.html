@@ -43,9 +43,12 @@
       </div>
     </div>
     <div class="hero-visual">
-      <div class="hero-img-wrap">
-        <img src="https://images.unsplash.com/photo-1593640408182-31c228d57e5f?w=900&q=80" alt="Gaming Setup">
+      <div class="hero-slider-wrap">
+        <div class="hero-slider" id="hero-slider">
+          <!-- Slides injected by JS -->
+        </div>
         <div class="hero-badge"><span>🎮</span>Level Up</div>
+        <div class="hero-slider-dots" id="hero-slider-dots"></div>
       </div>
     </div>
   </div>
@@ -124,6 +127,105 @@
   const cfg = PG.config;
   const cats = cfg.categories;
   const products = cfg.products;
+
+  // Apply hero customizations from settings
+  if (cfg.settings) {
+    if (cfg.settings.homeHeroText) {
+      const heroTitle = document.getElementById('hero-title');
+      const txt = cfg.settings.homeHeroText;
+      if (txt.includes('|')) {
+        const [a, b] = txt.split('|').map(s => s.trim());
+        heroTitle.innerHTML = `${a}<br><em>${b}</em>`;
+      } else {
+        heroTitle.innerHTML = `<em>${txt}</em>`;
+      }
+    }
+    if (cfg.settings.homeHeroSub) {
+      document.getElementById('hero-sub').textContent = cfg.settings.homeHeroSub;
+    }
+  }
+
+  // ── HERO PRODUCT SLIDER ──
+  initHeroSlider();
+
+  function initHeroSlider() {
+    // Prefer featured products; fall back to any products
+    const featuredOnly = products.filter(p => p.featured);
+    const slides = (featuredOnly.length ? featuredOnly : products).slice(0, 6);
+    const sliderEl = document.getElementById('hero-slider');
+    const dotsEl = document.getElementById('hero-slider-dots');
+    if (!sliderEl || !slides.length) return;
+
+    function fmtNum(n) {
+      if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+      return String(n);
+    }
+
+    sliderEl.innerHTML = slides.map((p, i) => {
+      const cat = cats.find(c => c.id === p.category);
+      const soldText = p.sold ? `· ${fmtNum(p.sold)}+ sold` : '';
+      const origPrice = (p.originalPrice && p.originalPrice > p.price) ? `<span class="hero-slide-orig">${PG.price(p.originalPrice)}</span>` : '';
+      const discountBadge = p.discount ? `<span class="hero-slide-discount">-${p.discount}%</span>` : '';
+      const ratingHTML = p.rating ? `<span class="hero-slide-rating"><span class="stars">★</span> ${p.rating} ${soldText}</span>` : '';
+      return `
+        <a class="hero-slide ${i === 0 ? 'active' : ''}" href="/product.html?id=${p.id}" data-idx="${i}">
+          <div class="hero-slide-img-wrap">
+            <img class="hero-slide-img" src="${p.image}" alt="${p.name}" onerror="this.style.display='none'">
+          </div>
+          <div class="hero-slide-overlay">
+            <div class="hero-slide-cat">${cat ? cat.icon + ' ' + cat.name : 'Featured'}</div>
+            <div class="hero-slide-name">${p.name}</div>
+            <div class="hero-slide-meta">
+              <span class="hero-slide-price">${PG.price(p.price)}</span>
+              ${origPrice}
+              ${discountBadge}
+              ${ratingHTML}
+            </div>
+            <span class="hero-slide-cta">Shop Now →</span>
+          </div>
+        </a>`;
+    }).join('');
+
+    dotsEl.innerHTML = slides.map((_, i) =>
+      `<button class="hero-slider-dot ${i === 0 ? 'active' : ''}" data-idx="${i}" aria-label="Slide ${i+1}"></button>`
+    ).join('');
+
+    let current = 0;
+    let timer = null;
+
+    function goTo(idx) {
+      sliderEl.querySelectorAll('.hero-slide').forEach((el, i) => el.classList.toggle('active', i === idx));
+      dotsEl.querySelectorAll('.hero-slider-dot').forEach((el, i) => el.classList.toggle('active', i === idx));
+      current = idx;
+    }
+
+    function nextSlide() {
+      goTo((current + 1) % slides.length);
+    }
+
+    function startAuto() {
+      stopAuto();
+      timer = setInterval(nextSlide, 4500);
+    }
+    function stopAuto() {
+      if (timer) { clearInterval(timer); timer = null; }
+    }
+
+    // Dot clicks
+    dotsEl.querySelectorAll('.hero-slider-dot').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        goTo(parseInt(btn.dataset.idx));
+        startAuto(); // reset timer
+      });
+    });
+
+    // Pause on hover
+    sliderEl.addEventListener('mouseenter', stopAuto);
+    sliderEl.addEventListener('mouseleave', startAuto);
+
+    startAuto();
+  }
 
   // Category grid
   const catGrid = document.getElementById('cat-grid');

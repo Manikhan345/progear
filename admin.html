@@ -213,12 +213,18 @@
           <div class="form-row">
             <div class="form-group">
               <label>Hero Heading</label>
-              <input type="text" id="s-hero-text">
+              <input type="text" id="s-hero-text" placeholder="Dominate | Every Game (use | for line break)">
             </div>
             <div class="form-group">
               <label>Hero Subtext</label>
               <input type="text" id="s-hero-sub">
             </div>
+          </div>
+          <div class="form-group">
+            <label>Hero Image URL</label>
+            <input type="url" id="s-hero-image" placeholder="https://images.unsplash.com/..." oninput="previewImg('s-hero-image','s-hero-img-preview')">
+            <img class="admin-img-preview" id="s-hero-img-preview">
+            <div style="font-size:11px;color:var(--text3);margin-top:6px">The big image on the homepage hero section. Recommended: 900x600px or larger.</div>
           </div>
           <button class="btn-admin btn-admin-primary" onclick="saveSettings()">Save Settings</button>
         </div>
@@ -956,6 +962,12 @@ function loadSettings() {
   document.getElementById('s-instagram').value = (config.site.socials||{}).instagram||'';
   document.getElementById('s-hero-text').value = (config.settings||{}).homeHeroText||'';
   document.getElementById('s-hero-sub').value = (config.settings||{}).homeHeroSub||'';
+  document.getElementById('s-hero-image').value = (config.settings||{}).homeHeroImage||'';
+  if (config.settings && config.settings.homeHeroImage) {
+    const preview = document.getElementById('s-hero-img-preview');
+    preview.src = config.settings.homeHeroImage;
+    preview.className = 'admin-img-preview show';
+  }
   renderMarqueeItems();
 }
 async function saveSettings() {
@@ -969,6 +981,7 @@ async function saveSettings() {
   if (!config.settings) config.settings = {};
   config.settings.homeHeroText = document.getElementById('s-hero-text').value.trim();
   config.settings.homeHeroSub = document.getElementById('s-hero-sub').value.trim();
+  config.settings.homeHeroImage = document.getElementById('s-hero-image').value.trim();
   await saveToGitHub();
 }
 function renderMarqueeItems() {
