@@ -473,7 +473,7 @@
       <div class="form-row">
         <div class="form-group">
           <label>Default Category</label>
-          <select id="daraz-default-cat"></select>
+          <select id="daraz-default-cat" onchange="renderDarazDefaultTags()"></select>
         </div>
         <div class="form-group">
           <label>Affiliate Source</label>
@@ -483,6 +483,13 @@
           </select>
         </div>
       </div>
+
+      <div class="form-group">
+        <label>Default Tags (applied to ALL imported products)</label>
+        <div id="daraz-default-tags" style="display:flex;flex-wrap:wrap;gap:6px;padding:10px;background:var(--bg3);border:1px dashed var(--border);border-radius:var(--radius);min-height:44px"></div>
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">Click tags to apply them to every product you import below. You can change per-product later.</div>
+      </div>
+
       <div style="display:flex;gap:16px;margin-bottom:8px;padding:10px 12px;background:var(--bg3);border-radius:var(--radius)">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text);font-size:13px;font-weight:600">
           <input type="checkbox" id="daraz-default-affiliate" checked>
@@ -1059,13 +1066,42 @@ function showToast(msg, type='success') {
 
 // ── Daraz Quick Add ──
 let darazFetched = []; // array of fetched product previews
+let darazDefaultTags = []; // tags applied to all bulk-imported products
 
 function openDarazModal() {
   // Populate default category select
   const sel = document.getElementById('daraz-default-cat');
   sel.innerHTML = config.categories.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
   resetDarazModal();
+  renderDarazDefaultTags();
   document.getElementById('daraz-modal').classList.add('open');
+}
+
+function renderDarazDefaultTags() {
+  const catId = document.getElementById('daraz-default-cat').value;
+  const cat = config.categories.find(c => c.id === catId);
+  const tags = (cat && cat.tags) || [];
+  const el = document.getElementById('daraz-default-tags');
+  if (!el) return;
+  // Reset selection when category changes (since tags are category-specific)
+  if (darazDefaultTags.length && !darazDefaultTags.every(t => tags.includes(t))) {
+    darazDefaultTags = darazDefaultTags.filter(t => tags.includes(t));
+  }
+  if (!tags.length) {
+    el.innerHTML = '<span style="color:var(--text3);font-size:11px;font-style:italic">No tags defined for this category. Add tags in Categories page.</span>';
+    return;
+  }
+  el.innerHTML = tags.map(tag => {
+    const selected = darazDefaultTags.includes(tag);
+    return `<button type="button" onclick="toggleDarazDefaultTag('${tag.replace(/'/g, "\\'")}'); return false;" style="font-size:11px;padding:4px 12px;border:1px solid ${selected?'var(--neon)':'var(--border)'};border-radius:3px;background:${selected?'var(--neon-dim)':'transparent'};color:${selected?'var(--neon)':'var(--text2)'};cursor:pointer;font-family:var(--font-display);font-weight:600;text-transform:uppercase;letter-spacing:0.04em">${tag}</button>`;
+  }).join('');
+}
+
+function toggleDarazDefaultTag(tag) {
+  const idx = darazDefaultTags.indexOf(tag);
+  if (idx === -1) darazDefaultTags.push(tag);
+  else darazDefaultTags.splice(idx, 1);
+  renderDarazDefaultTags();
 }
 function closeDarazModal() {
   document.getElementById('daraz-modal').classList.remove('open');
@@ -1075,9 +1111,13 @@ function resetDarazModal() {
   document.getElementById('daraz-step-1').style.display = 'block';
   document.getElementById('daraz-step-2').style.display = 'none';
   document.getElementById('daraz-urls').value = '';
+  const jsonEl = document.getElementById('daraz-json');
+  if (jsonEl) jsonEl.value = '';
   document.getElementById('daraz-progress').textContent = '';
   document.getElementById('daraz-previews').innerHTML = '';
   darazFetched = [];
+  darazDefaultTags = [];
+  renderDarazDefaultTags();
 }
 
 let darazMode = 'json'; // 'url' or 'json' — default to JSON since it's better
@@ -1125,7 +1165,7 @@ async function fetchDarazBulk() {
       affiliateUrl: p.affiliateUrl || '',
       affiliateSource: defaultSource,
       isAffiliate: isAffiliateDefault,
-      tags: [],
+      tags: [...darazDefaultTags],
       features: [],
       badge: '',
       featured: false,
@@ -1175,7 +1215,7 @@ async function fetchDarazBulk() {
           sold: result.sold || 0,
           affiliateUrl: result.affiliateUrl || urls[i],
           affiliateSource: defaultSource,
-          tags: [], features: [], badge: '',
+          tags: [...darazDefaultTags], features: [], badge: '',
           featured: false, inStock: true, _fetchError: false
         });
       } else {
