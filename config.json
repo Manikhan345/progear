@@ -119,34 +119,6 @@
   ],
   "products": [
     {
-      "id": "p001",
-      "name": "Redragon K552 Mechanical Keyboard",
-      "category": "keyboards",
-      "tags": [
-        "Mechanical",
-        "TKL",
-        "RGB"
-      ],
-      "price": 4500,
-      "image": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&q=80",
-      "images": [],
-      "rating": 4.5,
-      "reviews": 1240,
-      "badge": "Best Seller",
-      "description": "Compact TKL mechanical keyboard with red switches and RGB backlight. Built for competitive gaming.",
-      "features": [
-        "Blue mechanical switches",
-        "RGB per-key backlight",
-        "TKL compact layout",
-        "Anti-ghosting",
-        "Metal top frame"
-      ],
-      "affiliateUrl": "https://www.daraz.pk/products/",
-      "affiliateSource": "daraz",
-      "featured": true,
-      "inStock": true
-    },
-    {
       "id": "p1781167979833_0",
       "name": "FunBug Pro Gaming Headset with RGB Lights, Noise Cancelling Mic, USB/3.5mm Plug - Comfortable Ear Cushions, On-Headset Audio Control, New",
       "category": "headsets",
