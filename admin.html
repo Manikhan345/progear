@@ -327,7 +327,10 @@
     </div>
     <div class="form-row" style="margin-top:8px">
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text2);font-size:14px">
-        <input type="checkbox" id="p-featured"> Featured on homepage
+        <input type="checkbox" id="p-featured"> ✨ Featured on homepage
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text2);font-size:14px">
+        <input type="checkbox" id="p-bestseller"> 🔥 Pin as Best Seller
       </label>
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text2);font-size:14px">
         <input type="checkbox" id="p-instock" checked> In Stock
@@ -716,6 +719,7 @@ function openProductModal(id) {
   ['p-name','p-price','p-url','p-image','p-description','p-features','p-rating','p-reviews','p-badge'].forEach(i => document.getElementById(i).value = '');
   document.getElementById('p-img-preview').className = 'admin-img-preview';
   document.getElementById('p-featured').checked = false;
+  document.getElementById('p-bestseller').checked = false;
   document.getElementById('p-instock').checked = true;
   document.getElementById('p-affiliate').checked = true;
   pTagsState.length = 0;
@@ -735,6 +739,7 @@ function openProductModal(id) {
     document.getElementById('p-reviews').value = p.reviews || '';
     document.getElementById('p-badge').value = p.badge || '';
     document.getElementById('p-featured').checked = !!p.featured;
+    document.getElementById('p-bestseller').checked = !!p.isBestSeller;
     document.getElementById('p-instock').checked = p.inStock !== false;
     document.getElementById('p-affiliate').checked = p.isAffiliate !== false;
     pTagsState.push(...(p.tags||[]));
@@ -770,6 +775,7 @@ async function saveProduct() {
     affiliateUrl: url,
     affiliateSource: document.getElementById('p-source').value,
     featured: document.getElementById('p-featured').checked,
+    isBestSeller: document.getElementById('p-bestseller').checked,
     inStock: document.getElementById('p-instock').checked,
     isAffiliate: document.getElementById('p-affiliate').checked,
   };

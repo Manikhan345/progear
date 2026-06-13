@@ -257,7 +257,19 @@
     ${cats.map(c => `<button class="filter-tag" onclick="setFilter('${c.id}', this)">${c.icon} ${c.name}</button>`).join('')}`;
 
   function renderTopPicks(filter) {
-    const list = filter === 'all' ? products : products.filter(p => p.category === filter);
+    let list = filter === 'all' ? products : products.filter(p => p.category === filter);
+    // Sort: manually flagged Best Sellers first, then by sold count desc, then by rating × reviews
+    list = [...list].sort((a, b) => {
+      const aBest = a.isBestSeller ? 1 : 0;
+      const bBest = b.isBestSeller ? 1 : 0;
+      if (aBest !== bBest) return bBest - aBest;
+      const aSold = a.sold || 0;
+      const bSold = b.sold || 0;
+      if (aSold !== bSold) return bSold - aSold;
+      const aRating = (a.rating || 0) * (a.reviews || 0);
+      const bRating = (b.rating || 0) * (b.reviews || 0);
+      return bRating - aRating;
+    });
     tpGrid.innerHTML = list.slice(0, 6).map(p => PG.productCard(p)).join('');
     PG.initReveal();
   }
