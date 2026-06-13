@@ -47,8 +47,10 @@ const PG = {
     const tags = (p.tags || []).slice(0, 3).map(t => `<span class="product-tag">${t}</span>`).join('');
     const originalPrice = (p.originalPrice && p.originalPrice > p.price) ? `<span style="text-decoration:line-through;color:var(--text3);font-size:13px;font-weight:500;margin-left:6px">${this.price(p.originalPrice)}</span>` : '';
     const soldInfo = p.sold ? `<div style="font-size:11px;color:var(--text3);margin-top:4px">${Number(p.sold).toLocaleString()}+ sold</div>` : '';
+    const sourceLabel = p.affiliateSource === 'telemart' ? 'Telemart' : 'Daraz';
+    const priceDisclaimer = `<div style="font-size:10px;color:var(--text3);margin-top:6px;font-style:italic;letter-spacing:0.02em">* Price may vary on ${sourceLabel}</div>`;
     return `
-      <div class="product-card reveal">
+      <a href="/product.html?id=${p.id}" class="product-card reveal">
         <div class="product-img-wrap">
           <img src="${p.image}" alt="${p.name}" loading="lazy">
           ${badge}
@@ -63,12 +65,13 @@ const PG = {
             <span class="rating-count">(${Number(p.reviews).toLocaleString()})</span>
           </div>
           ${soldInfo}
+          ${priceDisclaimer}
           <div class="product-footer">
             <div class="product-price">${this.price(p.price)} <span>PKR</span>${originalPrice}</div>
-            <a href="/product.html?id=${p.id}" class="product-btn">View →</a>
+            <span class="product-btn">View →</span>
           </div>
         </div>
-      </div>`;
+      </a>`;
   },
 
   // ── Nav HTML ──
