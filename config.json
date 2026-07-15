@@ -1,4 +1,9 @@
 {
+  "adSettings": {
+    "inPagePush": true,
+    "vignette": true,
+    "nativeBanner": true
+  },
   "site": {
     "name": "ProGear",
     "tagline": "Dominate Every Game",
