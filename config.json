@@ -1,8 +1,6 @@
 {
   "adSettings": {
-    "inPagePush": true,
-    "vignette": true,
-    "nativeBanner": true
+    "multitag": true
   },
   "site": {
     "name": "ProGear",
