@@ -277,29 +277,19 @@ const PG = {
     return s[key] !== false; // default ON unless explicitly false
   },
 
-  // ── Load Monetag ads site-wide ──
+// ── Load Monetag Multitag site-wide (auto-optimized, runs all formats) ──
   loadAds() {
-    // Skip ads in admin, on localhost, or if ?noads is present
     const path = window.location.pathname;
     const qs = new URLSearchParams(window.location.search);
     if (path.includes('/admin') || location.hostname === 'localhost' || qs.has('noads')) return;
 
-    // In-Page Push (zone 11224040)
-    if (this.adEnabled('inPagePush')) {
+    if (this.adEnabled('multitag')) {
       try {
         const s = document.createElement('script');
-        s.dataset.zone = '11224040';
-        s.src = 'https://nap5k.com/tag.min.js';
-        document.body.appendChild(s);
-      } catch (e) {}
-    }
-
-    // Vignette (zone 11224041)
-    if (this.adEnabled('vignette')) {
-      try {
-        const s = document.createElement('script');
-        s.dataset.zone = '11224041';
-        s.src = 'https://n6wxm.com/vignette.min.js';
+        s.src = 'https://quge5.com/88/tag.min.js';
+        s.dataset.zone = '255208';
+        s.async = true;
+        s.dataset.cfasync = 'false';
         document.body.appendChild(s);
       } catch (e) {}
     }
