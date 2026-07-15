@@ -278,10 +278,17 @@ const PG = {
   },
 
 // ── Load Monetag Multitag site-wide (auto-optimized, runs all formats) ──
-  loadAds() {
+loadAds() {
     const path = window.location.pathname;
     const qs = new URLSearchParams(window.location.search);
-    if (path.includes('/admin') || location.hostname === 'localhost' || qs.has('noads')) return;
+
+    // Persistent no-ads flag: ?noads=on sets it, ?noads=off clears it
+    if (qs.get('noads') === 'on') { try { localStorage.setItem('pg_no_ads', '1'); } catch(e){} }
+    if (qs.get('noads') === 'off') { try { localStorage.removeItem('pg_no_ads'); } catch(e){} }
+    let noAdsStored = false;
+    try { noAdsStored = localStorage.getItem('pg_no_ads') === '1'; } catch(e){}
+
+    if (path.includes('/admin') || location.hostname === 'localhost' || qs.has('noads') || noAdsStored) return;
 
     if (this.adEnabled('multitag')) {
       try {
