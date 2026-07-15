@@ -271,10 +271,45 @@ const PG = {
     document.addEventListener('keydown', e => { if (e.key === 'Escape') { this.closeSearch(); this.closeMobileNav(); } });
   },
 
+  // ── Ad settings helper ──
+  adEnabled(key) {
+    const s = (this.config && this.config.adSettings) || {};
+    return s[key] !== false; // default ON unless explicitly false
+  },
+
+  // ── Load Monetag ads site-wide ──
+  loadAds() {
+    // Skip ads in admin, on localhost, or if ?noads is present
+    const path = window.location.pathname;
+    const qs = new URLSearchParams(window.location.search);
+    if (path.includes('/admin') || location.hostname === 'localhost' || qs.has('noads')) return;
+
+    // In-Page Push (zone 11224040)
+    if (this.adEnabled('inPagePush')) {
+      try {
+        const s = document.createElement('script');
+        s.dataset.zone = '11224040';
+        s.src = 'https://nap5k.com/tag.min.js';
+        document.body.appendChild(s);
+      } catch (e) {}
+    }
+
+    // Vignette (zone 11224041)
+    if (this.adEnabled('vignette')) {
+      try {
+        const s = document.createElement('script');
+        s.dataset.zone = '11224041';
+        s.src = 'https://n6wxm.com/vignette.min.js';
+        document.body.appendChild(s);
+      } catch (e) {}
+    }
+  },
+
   async init() {
     await this.loadConfig();
     this.injectChrome();
     this.setActiveNav();
+    this.loadAds();
     // Delay reveal init slightly for DOM
     setTimeout(() => this.initReveal(), 100);
   }
